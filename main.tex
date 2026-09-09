@@ -1,0 +1,54 @@
+\documentclass{article}
+
+\PassOptionsToPackage{numbers,sort&compress}{natbib}
+% NEmo requires anonymous workshop review. Add `final` only after acceptance.
+\usepackage[dblblindworkshop]{neurips_2026}
+\workshoptitle{NEmo: Neuro-Symbolic Embodied Intelligence}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{courier} % Embedded Type 1 monospace font, including URLs.
+\usepackage{amsmath,amssymb}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{microtype}
+\usepackage{xcolor}
+\usepackage[hidelinks]{hyperref}
+\usepackage{url}
+\graphicspath{{figures/}}
+\hypersetup{pdfauthor={},pdftitle={NEmo 2026 Submission Draft}}
+
+\title{Your Paper Title}
+\author{Anonymous Author(s)}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+\input{sections/00_abstract}
+\end{abstract}
+
+% Main-text limit: 8 pages (long) or 4 pages (short), including figures.
+\input{sections/01_introduction}
+\input{sections/02_related_work}
+\input{sections/03_method}
+\input{sections/04_experiments}
+\input{sections/05_conclusion}
+
+% The style hides this environment during anonymous review.
+\begin{ack}
+% Add acknowledgments and disclosures for the accepted version only.
+\end{ack}
+
+\bibliographystyle{plainnat}
+\bibliography{references}
+
+% The NEmo call does not currently specify whether a checklist is required.
+% The official checklist is retained; enable and complete if requested.
+% \clearpage
+% \input{vendor/neurips2026/checklist}
+
+\clearpage
+\appendix
+\input{sections/06_appendix}
+\end{document}

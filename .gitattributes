@@ -1,0 +1,9 @@
+* text=auto
+*.tex text eol=lf
+*.bib text eol=lf
+*.sty text eol=lf
+*.md text eol=lf
+*.pdf binary
+*.png binary
+*.jpg binary
+*.jpeg binary
