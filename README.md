@@ -2,6 +2,25 @@
 
 Anonymous LaTeX starter using the official NeurIPS 2026 style.
 
+## Current draft status
+
+The draft contains a detailed outline for **Iterative Policy Refinement through
+Semantic Rollout Analysis**, not manuscript prose. The eight-page budget applies
+to the eventual main text. The IJCAI26 refinement study is the primary source;
+KIM is background only.
+Related work is Section 2 and retains two subsections. A Car Racing running
+example begins with a topology in Section 3 and continues through the method,
+using textual parameter-fitting context and illustrated latent traces. The
+debugging analogy explains the diagnostic loop. Post-refinement RL
+remains in the main-text method and results, with technical details in the appendix.
+
+- `narrative_options.md`: the chosen narrative and section budgets.
+- `content_mapping.md`: source-to-subsection mapping, reusable assets, and gaps.
+- `sections/`: subsection headings and brief content bullets, including appendices.
+
+Bibliography output is temporarily commented out in `main.tex` because the
+outline has no citations. Re-enable it when verified research citations are added.
+
 ## Build
 
 Requires a TeX distribution with `pdflatex`, BibTeX, and `latexmk` (e.g. MacTeX

@@ -1,5 +1,75 @@
-\section{Experiments}
+\section{Experiments and analysis}
 \label{sec:experiments}
-Describe tasks, data splits, baselines, evaluation metrics, and compute.
-Report measured results with uncertainty, controlled ablations, and failure
-analysis appropriate to the claims.
+% Target: 2.5 pages. Reuse IJCAI26 evidence only; KIM results are not new results.
+% Source mapping: content_mapping.md, Sections 5.1--5.5.
+
+\subsection{Tasks, baselines, and evaluation protocol}
+\label{sec:setup}
+\begin{itemize}
+    \item Describe low-dimensional Car Racing and Door Opening, one
+    demonstration per task, demonstration provenance, and the ten reported
+    unseen evaluation settings. Verify reward definitions, horizons, and
+    separation between refinement rollouts and final evaluation settings.
+    \item Introduce zero-shot structured policy as the primary refinement
+    comparison; MLP and MLES provide context. Specify training stages and the
+    different supervision/resources available to each baseline.
+    \item State the LLM configuration, refinement/training budgets, metrics,
+    and what each uncertainty estimate aggregates. Recover independent-run
+    counts; do not equate evaluation settings with independent training runs.
+\end{itemize}
+
+\subsection{Does iterative refinement improve the initial policy?}
+\label{sec:refinement-results}
+\begin{itemize}
+    \item Lead with the existing zero-shot versus refined Car Racing imitation
+    results and the reported performance across iterations. Distinguish changes
+    in fitted behavior from the untested claim of recovering the expert's strategy.
+    \item Include Door Opening's reach-and-pull progression and distance metric
+    as the second task. Report limited progress in intermediate iterations;
+    avoid claiming that every revision produces an improvement.
+    \item Plan a compact performance table and refinement-history figure using
+    existing data/figures where recoverable. Keep resource columns separate
+    from reward, and preserve the uncertainty definitions.
+\end{itemize}
+
+\subsection{How does the feedback affect refinement?}
+\label{sec:feedback-results}
+\begin{itemize}
+    \item Compare generated-analysis results, subsampled trajectory tables,
+    and no-feedback revision using the existing Car Racing comparison. Explain
+    the table-subsampling and matched-budget details that must be recovered.
+    \item Reuse the input/output token table and discuss both counts, including
+    the larger output budget for analysis generation. Do not turn token counts
+    into unmeasured latency, monetary cost, or total-compute savings.
+    \item State the ablation's scope: it evaluates feedback procedures, not an
+    isolated effect of semantic names or latent logging. No reward-only feedback
+    result is present in the source manuscript.
+\end{itemize}
+
+\subsection{What changes across refinement iterations?}
+\label{sec:edit-analysis}
+\begin{itemize}
+    \item Extend the matched method example into a compact iteration record:
+    observed issue, diagnostic evidence, edit type, and subsequent behavior.
+    Separate documented explanations from conjectured mechanisms. Use the
+    method's running example to establish the workflow, and this subsection
+    for evidence across revisions rather than retelling the same example.
+    \item Reuse the existing Door Opening narrative, diagnostic categories,
+    and manually coded strategy-coverage table selectively. Explain the manual
+    coding procedure; move full coverage tables to the appendix.
+    \item Include ineffective revisions and diagnostic blind spots where
+    documented. Recover per-iteration programs/logs to distinguish additions,
+    operation/constraint changes, and initialization changes.
+\end{itemize}
+
+\subsection{Does refinement help subsequent reinforcement learning?}
+\label{sec:rl-results}
+\begin{itemize}
+    \item Present the reported refined versus zero-shot policy outcomes at the
+    stated RL budgets as a downstream benefit. Briefly explain when RL begins;
+    keep its detailed derivation in Appendix~\ref{app:rl}.
+    \item Separate refinement resets, RL resets, and LLM calls. Audit the old
+    abstract's compute percentage against the table; report environment resets
+    as such, without claiming measured total-compute savings or statistical
+    equivalence from similar mean returns.
+\end{itemize}

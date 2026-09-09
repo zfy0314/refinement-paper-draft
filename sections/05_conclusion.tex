@@ -1,9 +1,25 @@
-\section{Discussion and limitations}
-\label{sec:limitations}
-Discuss the scope of the evidence, remaining failure cases, and limitations
-of the assumptions and evaluation.
-
-\section{Conclusion}
+\section{Discussion and conclusion}
 \label{sec:conclusion}
-Summarize the supported finding and its implications for embodied
-neuro-symbolic intelligence.
+% Target: 0.5 page. Source mapping: content_mapping.md, Sections 6.1--6.2.
+
+\subsection{Scope and limitations}
+\label{sec:limitations}
+\begin{itemize}
+    \item Discuss reliance on initial LLM knowledge, authored feature/task
+    descriptions, and generated tests that can miss failures or encode incorrect
+    expectations. The study does not establish recovery from arbitrary initial
+    misalignment or verified semantic correctness.
+    \item Bound the evidence to two low-dimensional simulated tasks. State
+    limits of run variability and attribution where unresolved; distinguish
+    behavioral improvement from proof of causal structure or the expert's
+    internal decision process.
+\end{itemize}
+
+\subsection{Takeaway}
+\label{sec:takeaway}
+\begin{itemize}
+    \item Close with the supported role of semantic execution analysis in
+    iterative structural refinement and improved policy learning in the tested
+    settings. Keep the representation attributed to prior work and the
+    refinement process as the paper's contribution.
+\end{itemize}

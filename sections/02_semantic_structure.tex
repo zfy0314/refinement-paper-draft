@@ -1,0 +1,44 @@
+\section{Semantic policy structure}
+\label{sec:structure}
+% Target: 1 page. Background needed to understand refinement, not a KIM review.
+% Source mapping: content_mapping.md, Sections 3.1--3.2.
+
+\subsection{Policy programs and learnable parameters}
+\label{sec:policy-program}
+\label{sec:running-example}
+\begin{itemize}
+    \item Give one concise attribution to KIM. Define a structured policy using
+    named observations, intermediate quantities, operations, dependencies, and
+    trainable parameters; introduce compact notation for structure and parameters.
+    \item \textbf{Running example, panel A---policy topology:} start the example
+    here with a small Car Racing policy graph showing observations, semantic
+    latents, operations, parameterized dependencies, and actions. Explain how
+    the graph computes an action before introducing the refinement procedure.
+    Use a compact equivalent code snippet if it helps establish the mapping.
+    \item Reuse this exact topology and its variable names throughout
+    Section~\ref{sec:method}. Recover the selected iteration's definition rather
+    than assembling unrelated snippets; mark trainable numerical quantities
+    separately from the structure that remains fixed during imitation learning.
+    \item Explain the observation-to-action computation and action-distribution
+    output sufficiently for the refinement loop. Defer detailed distribution
+    parameterization and optimization to the appendix.
+\end{itemize}
+
+\subsection{An interface between execution and revision}
+\label{sec:semantic-interface}
+\begin{itemize}
+    \item Explain the two roles of structure: constrain what is learned and
+    expose meaningful internal computations for analysis. Link an intended
+    relationship, its measured execution values, and its editable definition.
+    Explain why these named quantities provide interpretable instrumentation
+    for the debugging analogy, beyond a final return or action error.
+    Point to latents in panel A whose changing values can be recorded and
+    illustrated during rollouts in Section~\ref{sec:traces}.
+    \item Distinguish edits to intermediate quantities, dependencies, operations,
+    and parameter constraints. Note separately that the implementation also
+    permits initialization and action-distribution changes.
+    \item State which properties are requested through prompts and which are
+    actually checked. Semantic names express intended meanings; computational
+    dependencies do not establish environmental causality. Avoid implying a
+    verified compiler or graph validator absent from the existing implementation.
+\end{itemize}

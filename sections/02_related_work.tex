@@ -1,5 +1,31 @@
 \section{Related work}
 \label{sec:related}
-% TODO: Add verified references to references.bib, alphabetized by key.
-Position the approach relative to the closest methods and distinguish
-differences in assumptions, supervision, and evaluation settings.
+% Target: 0.5 page. Section 2, before representation and method.
+% Source mapping: content_mapping.md, Sections 2.1--2.2.
+% Add verified bibliography entries when drafting; no placeholder citations.
+
+\subsection{Structured policies and learning from demonstrations}
+\label{sec:related-structured}
+\begin{itemize}
+    \item Position KIM as the representation/parameter-learning foundation and
+    distinguish the present iterative refinement contribution. Briefly compare
+    other relevant structured-policy methods after verifying their assumptions.
+    \item Compress the old learning-from-demonstrations survey to the distinction
+    needed here: numerical learning in a fixed policy versus revision of its
+    computations, with downstream RL as a secondary use.
+\end{itemize}
+
+\subsection{LLM-guided program revision and execution feedback}
+\label{sec:related-refinement}
+\begin{itemize}
+    \item Reuse the closest policy-code generation, program-search, and
+    feedback-based refinement references from IJCAI26. Compare the artifact
+    being revised, its trainable parameters, and the feedback supplied to the LLM.
+    \item Locate the present method through its combination of semantic
+    internal traces, generated numerical analyses, and repeated fitting/revision.
+    Avoid claims of priority or universal superiority without supporting sources.
+    \item Briefly relate the proposed loop to execution-guided code debugging
+    and generated tests. Verify references when drafting; frame this as an
+    explanatory analogy, with learned parameters and continuous closed-loop
+    behavior making the policy-refinement setting distinct.
+\end{itemize}

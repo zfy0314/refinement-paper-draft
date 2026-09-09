@@ -1,6 +1,30 @@
 \section{Introduction}
 \label{sec:introduction}
-% TODO: Replace this starter text and remove the example citation if unneeded.
-This manuscript is a starter for the NEmo 2026 workshop~\citep{nemo2026}.
-Introduce the embodied task, explain the gap addressed by the work, and
-state the contributions supported by the paper's evidence.
+% Target: 1 page including title and abstract. Paragraph plan, not prose.
+% Source mapping: content_mapping.md, Introduction.
+\begin{itemize}
+    \item \textbf{Paragraph 1---why structure matters.} Explain how task-specific
+    computations and dependencies support learning from limited demonstrations.
+    Introduce KIM briefly as prior work; keep its representation and empirical
+    contributions distinct from this paper's refinement contribution.
+    \item \textbf{Paragraph 2---why refinement is needed.} Preserve the motivation
+    of reducing the expert's burden of specifying a strategy. Explain that an
+    LLM's domain knowledge can differ from the strategy expressed in a
+    demonstration, leaving poor behavior after parameter fitting. An initial
+    structure is provisional, not necessarily incapable of solving the task.
+    \item \textbf{Paragraph 3---semantics as an interface.} Connect meaningful
+    intermediate quantities and explicit dependencies to measurable execution
+    behavior and editable computations. Establish both roles of structure:
+    inductive bias for fitting and an interface for refinement.
+    \item \textbf{Paragraph 4---the iterative solution.} Preview the complete
+    fit--execute--analyze--revise--refit cycle. Distinguish task descriptions
+    used for initial generation from demonstrations used for parameter learning
+    and policy rollouts used for diagnostic feedback.
+    Use a brief debugging analogy: instrument execution, write diagnostic checks,
+    inspect results, revise, and rerun. Explain that here the program is a learned
+    controller, and each structural edit is followed by parameter fitting.
+    \item \textbf{Paragraph 5---contributions and evidence.} State the iterative
+    procedure, its semantic diagnostic interface, and the two-task refinement
+    evaluation. Preview feedback comparisons and downstream RL as supporting
+    evidence. Do not present the KIM representation as a new contribution.
+\end{itemize}

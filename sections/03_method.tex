@@ -1,13 +1,149 @@
-\section{Method}
+\section{Iterative refinement through semantic analysis}
 \label{sec:method}
-Define the task, observations, actions, and learning objective. Describe the
-components and their interfaces, making clear which information is available
-during training and inference.
+% Target: 2.5 pages. Core contribution from the IJCAI26 refinement manuscript.
+% Source mapping: content_mapping.md, Sections 4.1--4.6.
 
-% Example figure usage:
-% \begin{figure}[t]
-%   \centering
-%   \includegraphics[width=\linewidth]{method.pdf}
-%   \caption{Describe the method and explain the visual notation.}
-%   \label{fig:method}
-% \end{figure}
+\subsection{Refinement loop and running example}
+\label{sec:loop}
+\begin{itemize}
+    \item State inputs: task/feature/action descriptions, a demonstration set,
+    environment access, and an LLM. Separate information available during
+    development from the observations used by the final deployed policy.
+    \item Introduce the complete cycle before its components. Plan an overview
+    figure and compact algorithm distinguishing the LLM, numerical learner,
+    environment, and diagnostic executor; visibly return edits to training.
+    \item Explain initial code and parameter initialization from the task
+    description and LLM knowledge. The initial LLM input is not the demonstration
+    trajectory. Separate the structure, fitted parameters, rollout, tests, and
+    diagnostic results in the notation.
+    \item \textbf{Running example continuation:} refer to the policy topology
+    already introduced in Section~\ref{sec:running-example}. Preview how its
+    parameter fitting, recorded latents, diagnostic result, structural edit,
+    and post-refit behavior instantiate the loop; no second introductory
+    topology panel is needed here.
+    \item \textbf{Debugging analogy:} map policy program to code, semantic
+    rollout logs to instrumented traces, generated analyses to diagnostic tests,
+    and revision/refitting to editing and rerunning. Use a compact figure inset
+    or explanatory paragraph, not a separate claimed contribution. Behavioral
+    checks may have uncertain expectations and no exact target action for every
+    encountered state; their outputs inform revisions rather than certify them.
+\end{itemize}
+
+\subsection{Fitting each policy to demonstrations}
+\label{sec:fitting}
+\begin{itemize}
+    \item Specify parameter fitting with the program held fixed and the
+    demonstration set reused across iterations. Include the correctly signed
+    negative-log-likelihood objective when drafting.
+    \item Explain how training and initialization work after an edit; recover
+    whether parameters are reset or transferred and the actual training stopping
+    criterion from implementation artifacts. Do not assume a global optimum.
+    \item Distinguish demonstration fitting from evaluation of closed-loop
+    behavior. Clarify that downstream RL occurs after refinement, rather than
+    supplying the training update in every refinement round.
+    \item \textbf{Running example, textual explanation only:} describe the
+    LLM's initial parameter values as estimates that may not reflect the actual
+    environment's quantitative relationships. With the topology held fixed,
+    training adjusts these values to increase the likelihood of the demonstrated
+    actions. Identify the example's demonstration-fitting context without a
+    dedicated figure or before/after visual comparison. Parameter fitting does
+    not by itself establish that structural or semantic problems are resolved.
+\end{itemize}
+
+\subsection{Recording semantic execution traces}
+\label{sec:traces}
+\begin{itemize}
+    \item Explain how executing the fitted policy produces a table with time
+    steps as rows and observations, parameters, intermediate values, and actions
+    as columns. Policy parameters remain fixed within an evaluation rollout.
+    Emphasize that the structure exposes latent computations as well as external
+    observations and actions, allowing their evolution to be tracked.
+    \item Describe the generated model's \texttt{info\_dict}, semantic key names,
+    and scalar columns for vector components. Explain the table schema briefly;
+    illustrate behavior with selected latent traces and an annotated rollout
+    rather than a large numerical table. Preserve units and sign conventions.
+    \item Distinguish predicted action-distribution quantities from sampled or
+    clipped executed actions. Full numerical logs go to external analysis code;
+    the LLM receives the schema when generating diagnostics.
+    \item \textbf{Running example, panel B---latent traces:} align a few plots
+    of the selected policy's semantic latents, relevant observations, and actions
+    with an annotated trajectory. Mark the same nodes as panel A and highlight
+    a documented interval of problematic behavior. Use the source's
+    \texttt{latent\_closest\_x} and \texttt{output\_clipped\_steer} if present
+    in the matched run; include another meaningful internal quantity only if
+    actually computed by that policy. Distinguish observations from latents.
+    \item Clarify that these figures explain the traces to the reader. The
+    analysis scripts still receive full numerical tables, and the LLM receives
+    the schema and diagnostic results; this is not a visual-feedback variant.
+    Reserve raw log excerpts for the appendix if needed for reproducibility.
+\end{itemize}
+
+\subsection{Generating and executing diagnostics}
+\label{sec:diagnostics}
+\begin{itemize}
+    \item List the LLM inputs: task description, current policy code, and table
+    column names. Explain the prompt's progression from expected behaviors and
+    possible anomalies to hypotheses and executable analysis functions.
+    \item Show a short generated test and its numerical output. Cover the role
+    of sign/range checks, reconstruction checks, correlations, and behavioral
+    statistics without reproducing the full diagnostic taxonomy here.
+    \item Explain external execution on the complete table and return of
+    diagnostic summaries to the LLM. These analyses supply evidence for proposed
+    edits; they do not certify the underlying semantic assumptions.
+    \item \textbf{Running example, panel C:} use the source's steering-alignment
+    diagnostic as a candidate: the fraction of steps with
+    $\mathrm{steer}\cdot\mathrm{closest\_x}>0$, including an off-track subset.
+    Verify the sign convention and show the actual output from the selected
+    run. Explain that lateral correction alone is not a complete specification
+    of steering during a turn; the statistic requires task context.
+    \item Explain the analogy's scope: some checks resemble numerical
+    assertions, while others summarize temporal or statistical behavior.
+    Continuous, correlated, potentially stochastic rollouts need not yield a
+    single binary pass/fail result. Call these diagnostic checks rather than
+    imply conventional unit tests with a known correct output.
+\end{itemize}
+
+\subsection{Revising the program and continuing the loop}
+\label{sec:revision}
+\begin{itemize}
+    \item Specify the revision context: current program, generated tests,
+    diagnostic results, and task information. Explain how the LLM relates an
+    observed issue to a proposed change in a computation or constraint.
+    \item Describe the prompt's three branches: propose a revised program,
+    request additional diagnostics, or declare no further changes needed.
+    Distinguish these available branches from the sequence actually used in
+    the experiments; document budgets and stopping criteria from records.
+    \item Describe retraining, fresh execution, and regeneration of the table
+    schema/tests when the program changes. Record initialization and distribution
+    edits separately from topology changes. Do not invent acceptance/reversion
+    rules or claim convergence or monotonic improvement.
+    \item \textbf{Running example, panel D:} show the selected run's actual
+    before/after computation and the diagnostic rationale, then the refitted
+    policy's subsequent behavior. This closes the example within the method
+    rather than postponing its explanation to the experiments.
+    \item Clarify the rerun analogy: changed structure must be trained again
+    before execution is informative. Tests can change with the program; do not
+    imply a fixed regression suite or a mandatory test-passing acceptance gate
+    unless it existed in the reported implementation.
+    \item \textbf{Missing evidence for panels A--D:} recover matched programs,
+    fitting context, logs, diagnostics, edit, and evaluation. Do not connect the
+    displayed steering test to unrelated slip-weight outputs or constraints.
+    If unavailable, label the example schematic and separate it from measured
+    empirical evidence.
+\end{itemize}
+
+\subsection{Post-refinement reinforcement learning}
+\label{sec:rl-method}
+\begin{itemize}
+    \item Retain a brief account of the original RL component: after structural
+    refinement ends, keep the program structure fixed and further optimize its
+    parameters with environment rewards. Explain how this stage differs from
+    the imitation-learning updates inside the refinement loop.
+    \item Identify the critic-free, GSPO-based recipe used in the old draft
+    and summarize the role of sampled trajectories and relative returns. Defer
+    the detailed objective, grouping assumptions, and hyperparameters to
+    Appendix~\ref{app:rl}, subject to implementation verification.
+    \item Link to the main-text RL comparison in Section~\ref{sec:rl-results}.
+    Allocate roughly 0.2 of the method's 2.5 pages to this subsection; the
+    iterative procedure and embedded example occupy the remaining space.
+\end{itemize}

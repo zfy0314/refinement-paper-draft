@@ -1,5 +1,99 @@
-\section{Additional details}
-\label{app:details}
-% TODO: Fill this appendix or remove its input from main.tex.
-Provide reproducibility details, extended results, or proofs here. Keep the
-main paper self-contained and anonymize any supplementary material.
+% Outline only. References/appendices are outside the eight-page main-text budget.
+% Source mapping: content_mapping.md, Appendices A--E.
+
+\section{Policy-generation prompts and interfaces}
+\label{app:generation}
+
+\subsection{Shared generation specification}
+\label{app:specification}
+\begin{itemize}
+    \item Reuse the IJCAI26 policy-generation specification: semantic variables,
+    differentiable computation, parameter initialization, action-distribution
+    outputs, and the logging dictionary. Preserve prompts used in experiments;
+    distinguish historical prompt text from any corrected explanatory text.
+\end{itemize}
+
+\subsection{Environment descriptions and observation schemas}
+\label{app:environment}
+\begin{itemize}
+    \item Reuse the Car Racing and Door Opening environment prompts, feature
+    shapes, sign conventions, action spaces, and task information. Verify these
+    against the actual experiment interface before drafting.
+\end{itemize}
+
+\section{Diagnostic and revision prompts}
+\label{app:prompts}
+
+\subsection{Hypothesis generation and analysis execution}
+\label{app:diagnostic-prompts}
+\begin{itemize}
+    \item Include the shared diagnostic system prompt, policy/schema input
+    template, result format, and execution details. Show full scripts for the
+    main example and document error handling from actual implementation records.
+\end{itemize}
+
+\subsection{Revision, additional tests, and termination}
+\label{app:revision-prompts}
+\begin{itemize}
+    \item Reuse all three response branches from the refinement prompt. Add
+    the actual orchestration, budget, stopping, and any selection rules from
+    experiment records; identify behavior not documented by the old paper.
+\end{itemize}
+
+\section{Training and evaluation details}
+\label{app:training}
+
+\subsection{Imitation learning and refinement configuration}
+\label{app:il}
+\begin{itemize}
+    \item Provide optimizer settings, initialization/transfer behavior, training
+    stopping criteria, LLM configuration, rollout seeds, evaluation separation,
+    independent-run counts, and uncertainty calculations from saved records.
+\end{itemize}
+
+\subsection{Post-refinement reinforcement learning}
+\label{app:rl}
+\begin{itemize}
+    \item Adapt the IJCAI26 RL subsection after checking objective, sequence
+    grouping, indexing, and implementation consistency. State the assumption
+    behind grouping states at corresponding times across sampled trajectories.
+    Document RL hyperparameters and exact reset accounting.
+\end{itemize}
+
+\section{Complete refinement records}
+\label{app:records}
+
+\subsection{Car Racing programs, diagnostics, and rollouts}
+\label{app:car-record}
+\begin{itemize}
+    \item Recover the before/after programs, demonstration-fitting details,
+    relevant log rows, full diagnostic outputs, and post-refit evaluations for
+    the main example. Record provenance and iteration identifiers.
+\end{itemize}
+
+\subsection{Door Opening progression}
+\label{app:door-record}
+\begin{itemize}
+    \item Expand the existing iteration images and narrative with matched
+    programs/diagnostics where available. Preserve ineffective intermediate
+    revisions and distinguish measured distance from qualitative task success.
+\end{itemize}
+
+\section{Extended feedback and semantic analyses}
+\label{app:extended}
+
+\subsection{Diagnostic and strategy coverage}
+\label{app:coverage}
+\begin{itemize}
+    \item Reuse the detailed diagnostic-coverage and semantic-strategy tables.
+    Explain manual categories, coding criteria, and limits of coverage counts
+    as measures of semantic correctness or diagnostic usefulness.
+\end{itemize}
+
+\subsection{Feedback budgets and supplementary results}
+\label{app:budgets}
+\begin{itemize}
+    \item Document raw-table subsampling, feedback comparability, token
+    aggregation, refinement histories, and supplementary baseline/RL rows from
+    existing records. Do not populate missing measurements with inferred data.
+\end{itemize}
