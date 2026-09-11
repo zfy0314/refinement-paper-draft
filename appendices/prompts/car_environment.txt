@@ -1,0 +1,21 @@
+# Features
+The input to the model is two tensors representing the tracks and other indicator information:
+
+0. (float32, (B, L, 4)) tiles. Where $B$ is the batch size and $L=12$ is the number of tiles on the track ahead of the race car, and the last dimension contains $(x, y, \theta, border)$ where $x$ is the signed lateral position of the tile (positive means the race car is on the left of the center of the tile), $y$ is the signed longitudinal position of the tile, $\theta$ is the relative heading of the tile to the race car (positive means the road is heading to the left), and $border$ is either 0 or 1, indicating whether the tile is a sharp corner (curvature exceeds some threshold).
+1. (float32, (B, 7)) indicators. Where the first column is the speed $v$ (normalized from [0, 100] to [0, 1]), the second column is the current (absolute) heading of the race car $\theta$ (normalized from [-pi, pi] to [-1, 1]), the third column is the angular velocity $\omega$, and the rest are the abs sensor readings (approximate wheel omega) from each wheels (in the order of front left, front right, rear left, rear right).
+
+# Output Space
+A tensor of shape (B, 3) where each element corresponds to steer, accelerate, and brake controls of the race car, respectively. These controls are continuous. The steer value should be in the range of $(-1, 1)$, where -1 is full left, 0 is no steering, and 1 is full right. Accelerate is in the range of $(0, 1)$, where 0 is no acceleration and 1 is full acceleration. Brake is also in the range of $(0, 1)$, where 0 is no braking and 1 is full braking.
+
+# Objective and Reward
+The objective is to complete the track as fast as possible without going off the track. A positive reward is given whenever the race car moves to a new tile on the track and a small negative reward is given at each step as time penalty.
+
+# Additional Notes
+* The track is a loop.
+* The track is about 0.4 unit wide. When the closest tile's x is at -0.2 or 0.2 it means the race car is on the edge of the track. Beyond that it's grass.
+* The race car is approximately 3 tiles long.
+* The first tile is the closest tile to the race car, and the rest are in the order of tiles ahead.
+* The arguments of the forward function should only be self, tiles, and indicators.
+* Estimate a variance for each output dimension to account for uncertainty.
+* Clip the output to the desired range.
+* Name your model "RacecarPolicy".

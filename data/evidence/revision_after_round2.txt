@@ -1,0 +1,75 @@
+[Analysis of Test Results]
+
+Key findings from the provided test_results.txt
+- Internal consistency: The policy's internal computations are self-consistent. Reconstructing steering and desired-speed computations from logged latents and weights shows 0 mismatches; output_clipped_* match the computed clamped actions exactly. Variances are well-formed and action saturation is very low. There are no rows where both accel and brake are positive.
+- Latent / observation mismatch: Many latents (closest_x, lookahead theta mean/abs mean, wheel_abs_mean, speed, heading, omega, etc.) do NOT match the values you can compute directly from the obs_* columns in the DataFrame (e.g., latent_lookahead_theta_mean mismatches 992/1000). Only a few latents (sharp flag, wheel_slip_pos mostly) match. This indicates a pipeline mismatch between the logged latents and the raw obs_* columns (normalization, coordinate conventions, or different preprocessing was applied when the model computed latents).
+- Weight sign anomalies: Several weights ended up with signs opposite to the semantic initialization expectation:
+  - weight_speed_lat (expected negative) is positive.
+  - weight_speed_slip is large and positive (6.6) — reversed from the intended negative slip penalty.
+  - weight_speed_lookahead_theta_abs_speed and weight_speed_steer_interaction are positive (expected negative).
+  - Some variance multipliers for sharp/brake are negative in the logs (but the model uses abs when computing std).
+  - weight_steer_omega raw is small-negative in logs (was expected positive). Note: the model uses abs(weight_steer_omega) in the damping, so raw sign is less meaningful there.
+- Empirical effects:
+  - Lookahead theta mean strongly correlates with steering (r = -0.9732), consistent with expected steering behavior.
+  - Sharp-ahead rows show much lower desired_speed (mean 0.404 vs 1.000), so the model does reduce speed for sharp corners (good).
+  - Wheel slip has a small positive correlation with desired_speed (r ≈ 0.08). Combined with weight_speed_slip > 0, the model tends to increase desired speed when wheel slip is present (counterintuitive), probably because of correlations in the expert data and no constraint on sign.
+
+Interpretation / hypotheses about causes
+- Logging / normalization mismatch (primary): The high mismatch rate between latent_* and obs_* indicates that the logged latents were computed from a preprocessed copy of tiles/indicators (e.g., normalized, transformed coordinate frame, or using a different lookahead) — not from the raw obs_* columns in the DataFrame. Because steering and speed latents are self-consistent, the model uses those transformed latents internally, and the logged values reflect them. This complicates offline explanations and makes direct comparisons to obs_* invalid.
+- Weight sign flips as compensation: Several weights flipped sign during training. Likely causes:
+  - Missing or mis-specified features in the model cause the optimizer to find parameter combinations with unexpected signs to reproduce the expert's outputs (e.g., a missing curvature/time-to-corner metric → model uses other features with inverted signs).
+  - Scaling / collinearity: wheel_slip_pos may be highly correlated with speed or throttle in the demonstration (e.g., the expert accelerates even as wheels spin), so the model learned a large positive slip weight to mimic the expert. Without sign constraints, parameters can "compensate" in unintuitive ways.
+  - Lookahead summarization: mean lookahead theta can cancel opposing curvatures; a single mean may be insufficient and lead the model to use other interaction terms (and flip signs) to replicate the demonstration.
+- Parameterization fragility: variance and interaction terms were allowed to flip sign (even though abs is later used) — this makes offline checks confusing and training can push parameters to unrealistic magnitudes.
+
+Operational consequence
+- Despite sign anomalies, the policy reproduces the expert behavior (it has converged to mimic the demo under the given structure). However, weights with flipped semantics indicate brittle generalization and make diagnosing failures harder. Also, the latent/obs mismatch prevents robust offline debugging.
+
+[Model Update Suggestions]
+
+Goal: make the model more semantically constrained and robust to scale/collinearity, reduce the ability of weights to flip sign when they should have a known semantic effect, and add a small, explainable curvature latent that better captures severe upcoming corners (so the speed predictor doesn't have to invent strange sign combinations to fit the demo).
+
+Concretely:
+1. Enforce sign constraints for parameters that semantically should always reduce desired speed:
+   - Parameterize these as negative by design: weight = -torch.abs(raw_param). This prevents sign flips during IL.
+   - Apply the same idea for parameters that must be positive (gains, base speed): use torch.abs(raw_param) when appropriate.
+   Rationale: prevents compensating sign flips that make the model brittle.
+
+2. Add a sharper lookahead curvature latent:
+   - lookahead_theta_abs_max = max(abs(theta) over lookahead)
+   - A distance-weighted absolute lookahead mean (weights inversely proportional to lookahead_y) so nearby curvature counts more.
+   Rationale: mean alone can dilute sharp upcoming corners; max or distance-weighted metrics capture imminent danger and let the model reduce desired speed more reliably.
+
+3. Compress / normalize wheel slip before multiplying with learnable (negative) slip weight:
+   - Use a simple smooth compressive transform slip_norm = slip / (1 + slip_scale * slip) with slip_scale learnable (abs).
+   Rationale: prevents the model from needing huge slip weights to compensate for sensor scale.
+
+4. Make variance parameters explicitly positive:
+   - Use torch.abs(raw) (or softplus) for variance raw params so logged variance parameters match their operational effect (positive).
+   Rationale: prevents confusing negative logged values and ensures consistent interpretation.
+
+5. Keep steering structure similar but ensure steering-damping parameter is expressed as magnitude (abs) and optionally record the effective signed damping for clarity.
+
+6. Clean up logging (non-model action): Align the obs_* columns with the model's preprocessed latents (normalize or include the same preprocessing in the logging path). This is a data-pipeline fix — necessary for reliable offline tests.
+
+Result: the updated model will be easier to reason about, less likely to learn brittle sign-flipped combinations, and more sensitive (via new latents) to imminent sharp corners.
+
+[Model Summary]
+
+I propose an updated RacecarPolicy that:
+- Preserves the sparse, semantically meaningful structure (steering and speed computed from interpretable latents).
+- Constrains weights with clear semantics:
+  - Gains and base speed are constrained positive (torch.abs raw).
+  - "Slow-down" weights (curvature, lateral offset, slip, yaw, lookahead abs, speed*interactions) are constrained negative via -torch.abs(raw).
+- Adds two new latents:
+  - latent_lookahead_theta_abs_max: max absolute lookahead heading among lookahead tiles (captures sharp upcoming curvature).
+  - latent_weighted_lookahead_theta_abs_mean: distance-weighted mean of |theta| giving more weight to nearer tiles (uses lookahead tile y's).
+- Adds a small learned slip normalization (slip_scale) so the model doesn't use huge slip weights if slip units are large.
+- Keeps uncertainty as diagonal using positive parameters (abs of raw params), clamped to [1e-3, 1.0].
+- Returns an info_dict containing the effective weights (the values actually used in forward) and all latents. All weight entries are shape (1,) and latents shape (B,).
+
+Rationale for key parameterization choices:
+- Constraining signs for "should-decrease-speed" parameters ensures the model can only reduce desired speed in presence of those signals (curvature, lat offset, slip), preventing degenerate sign-flip compensations.
+- The max and weighted lookahead latents capture imminent sharp corners that the simple mean can miss, reducing the need for odd compensating weights.
+- Slip normalization stabilizes training when slip sensor scale is uncertain.
+

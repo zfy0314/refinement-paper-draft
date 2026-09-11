@@ -1,25 +1,35 @@
-\section{Discussion and conclusion}
-\label{sec:conclusion}
-% Target: 0.5 page. Source mapping: content_mapping.md, Sections 6.1--6.2.
-
-\subsection{Scope and limitations}
+\section{Limitations}
+\label{sec:discussion}
 \label{sec:limitations}
-\begin{itemize}
-    \item Discuss reliance on initial LLM knowledge, authored feature/task
-    descriptions, and generated tests that can miss failures or encode incorrect
-    expectations. The study does not establish recovery from arbitrary initial
-    misalignment or verified semantic correctness.
-    \item Bound the evidence to two low-dimensional simulated tasks. State
-    limits of run variability and attribution where unresolved; distinguish
-    behavioral improvement from proof of causal structure or the expert's
-    internal decision process.
-\end{itemize}
 
-\subsection{Takeaway}
+Because tests are generated from the existing policy structure and table column names, the LLM may not anticipate every failure mode or generate tests for it. As a result, some problems may never be exposed or corrected.
+Additionally, current evaluations cover only low-dimensional tasks following the MDP assumption. A natural next step is to scale the method to more complex tasks with larger feature spaces or possibly a POMDP formulation \cite{kaelbling1998planning}.
+The method may also benefit from a fine-tuned LLM and/or a more carefully designed, higher-level domain-specific language such as Scenic \cite{fremont2019scenic}, which may be easier to update than PyTorch.
+% Overall, this work focuses on proof of concepts, many design details can be revisited and refined.
+
+% Another limitation of the proposed method based on the experimental results is that the generated tests are very primitive, and the fixes are also very primitive.
+% This currently limits the kind of problems that the refinement process is able to correct.
+% But as the capability of the LLMs increases, it would be able to handle more sophisticated mode of failures.
+
+
+% Semantic structure connects numerical execution to targeted policy revision.
+% In the slip example, reconstruction checks establish that the program computes its stated formula, while sign checks reveal that the learned feature serves a different role from the one intended.
+% This distinction directs the LLM toward revising the feature and its parameterization.
+% Retaining effective diagnostics across rounds could turn these local discoveries into reusable tests for future policies.
+% 
+% A structural edit can improve an intended relationship while reducing overall return, as the nonmonotonic refinement trajectory illustrates.
+% Each revision can change several computations, initializations, and uncertainty parameters, so the experiments evaluate their combined effect.
+% Future ablations should isolate individual edits and the contributions of semantic naming and latent logging, while repeated refinement runs would characterize variability across generated structures.
+% 
+% Our experiments use semantic observations, authored task descriptions, and simulated environments, with generalization evaluated across unseen configurations of the same tasks.
+% Extending the method to visual inputs and new embodiments requires grounding latent quantities in perception and adapting diagnostics to sensor uncertainty.
+% Diagnostic reliability is another challenge: useful checks must distinguish a mismatch in the control strategy from inconsistencies in sensor units or observation timing.
+
+\section{Conclusion}
+\label{sec:conclusion}
 \label{sec:takeaway}
-\begin{itemize}
-    \item Close with the supported role of semantic execution analysis in
-    iterative structural refinement and improved policy learning in the tested
-    settings. Keep the representation attributed to prior work and the
-    refinement process as the paper's contribution.
-\end{itemize}
+
+We introduced iterative policy structure refinement through semantic rollout analysis.
+The method alternates demonstration-based parameter fitting with LLM-generated diagnostics and structural edits, linking execution and revision through semantically meaningful latents.
+With one demonstration per task, refinement improves imitation learning, generalizes to unseen task configurations, and reduces subsequent reinforcement learning resets.
+% Semantic structure makes learned control strategies accessible to the same cycle of testing and revision that drives code debugging.

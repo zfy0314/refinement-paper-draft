@@ -1,0 +1,97 @@
+[Analysis of Test Results]
+
+Summary of the salient test outcomes and what they reveal about the current policy:
+
+- Weight stability and latent computation:
+  - All registered weights are stable across the rollout (std ≈ 0), so the logs contain a single model snapshot.
+  - Latents are consistent with raw observations; the inferred lookahead L = 6 matches the model's default, and most latent-vs-obs mean absolute differences are very small. This confirms the logging and latent computations are correct.
+
+- Steering branch:
+  - Recomputed steering_raw and steering_gain_effective match logged latents almost exactly (mean_abs_diff ~ 1e-9), and regression coefficients match the logged weights. The learned steering coefficients are:
+    - closest_x ≈ +0.0602 (small positive centering),
+    - lookahead_theta ≈ -0.4096 (turn anticipation),
+    - heading_indicator ≈ -1.7864 (strong correction),
+    - abs(omega) ≈ -0.000319 (practically zero damping).
+  - Interpretation: heading and lookahead dominate steering; omega damping was driven close to zero by training (weight_steer_omega tiny), possibly because heading_indicator already captures the needed corrective signal or because omega has little predictive variance in the dataset.
+
+- Speed & slip:
+  - desired_preclamp and subsequent actuator computations match logs exactly (mean_abs_diff ~ 1e-8).
+  - However, the empirical correlation between wheel_slip_rel and desired_preclamp is positive (r ≈ +0.53 overall, r = +1.0 on positive-slip subset). That is inconsistent with the designer's semantic expectation (slip should reduce desired speed). This indicates either:
+    - During imitation learning the slip weight was learned positive (model increases desired speed on slip), or
+    - The use of raw wheel_slip_rel (which can be negative) interacting with a negative weight produces confusing correlations.
+  - Consequence: current linear treatment of slip (weight * wheel_slip_rel) allows negative slip (wheels slower than vehicle) to increase desired speed, which is typically undesirable.
+
+- Dynamics and effectiveness:
+  - Speed_delta correlates strongly with accel (r ≈ +0.93) and negatively with brake (r ≈ -0.37), indicating throttle/brake have the expected immediate effect on speed.
+  - Angle_delta vs steer has near-zero correlation (r ≈ -0.013, p ≈ 0.675). In practice this means the logged steering commands do not show a clear immediate influence on the recorded heading between consecutive steps. Possible causes:
+    - steering effects are applied to angular acceleration/omega and may not show up as immediate heading changes in one recorded time step (time lag),
+    - the heading measurement is noisy or wrapped ([-pi, +pi] normalization) and the simple delta is not capturing turning,
+    - steering magnitudes are often small or the car is moving slowly (low yaw response).
+  - The near-zero omega coefficient in the learned weights suggests the model found little benefit in explicitly damping steering with |omega| in this dataset.
+
+- Saturation and uncertainty:
+  - desired_preclamp is clipped out of [0,1] in ~10% of rows (7.1% below 0, 3.0% above 1). This is not catastrophic, but it indicates the linear combination can produce aggressive (out-of-range) desired speeds in some states.
+  - Steer std summary is reasonable (mean ~0.1), no extreme variances.
+
+Conclusions from the above:
+- The model implementation and logging are correct.
+- Two issues stand out as actionable:
+  1) The slip term's linear use of wheel_slip_rel allows negative slip to increase desired speed, and the learned sign in the trained model can be contradictory to the intended semantics. This explains the unexpected positive correlation between slip and desired speed.
+  2) Steering does not show immediate heading effect in the logged next-step delta. Regardless of whether this is an environment timing/measurement issue, the policy should reduce desired speed when steering demand is large at high speed (safety heuristic), because steering effectiveness may be delayed or noisy.
+
+Given these, we can make clear, simple, interpretable modifications to the model to align semantics and to improve robustness in imitation learning.
+
+[Model Update Suggestions]
+
+Primary changes (simple, interpretable, differentiable) to improve learning and behavior:
+
+1) Rectify slip input (only penalize positive wheel slip):
+   - Replace the linear wheel_slip_rel term by wheel_slip_pos = relu(wheel_slip_rel) and apply weight_speed_slip * wheel_slip_pos. This ensures wheels spinning faster than vehicle reduce desired speed, but wheels slower than vehicle (negative slip) do not spuriously increase desired speed.
+
+2) Make lookahead-induced speed reduction stronger at high speeds:
+   - Add a simple interaction term weight_speed_lookahead_theta_abs_speed * lookahead_theta_abs_mean * speed. This causes the model to slow more for big upcoming curvature when traveling fast.
+
+3) Penalize heavy steering at speed:
+   - Add weight_speed_steer_interaction * |steer| * speed to desired_preclamp. This reduces desired speed when the steering command magnitude is large and the car is fast (helps when heading changes are slow to materialize).
+
+4) Clamp action variances to reasonable bounds:
+   - Clamp diagonal stds to a small positive minimum (e.g., 1e-3) and a reasonable upper bound (e.g., 1.0) to avoid degeneracy in the covariance (overconfident or extreme variance).
+
+5) Keep the rest of the sparse, interpretable structure unchanged (no dense MLP). These changes preserve interpretability and remain easy to learn from limited demonstrations.
+
+Why these fixes are appropriate given the tests:
+- Rectified slip addresses the observed positive correlation between raw slip and desired speed (counterfactual semantics).
+- Speed-weighted lookahead and steering interaction address the observed lack of immediate steering-to-heading response by enforcing safer behavior (slowing when steering is high or big curvature is ahead, especially at speed).
+- Variance clamping avoids extreme or degenerate covariances seen in some IL runs.
+
+[Model Summary]
+
+RacecarPolicy (updated)
+- Inputs:
+  - tiles: (B, L, 4) containing (x, y, theta, border)
+  - indicators: (B, 7) containing [speed, heading_abs, omega, wheel_FL, wheel_FR, wheel_RL, wheel_RR]
+- Key latents:
+  - latent_closest_x, latent_closest_theta
+  - latent_lookahead_theta_mean, latent_lookahead_theta_abs_mean
+  - latent_sharp_ahead
+  - latent_wheel_abs_mean, latent_wheel_slip_rel, latent_wheel_slip_pos (new)
+  - latent_speed, latent_heading_indicator, latent_omega
+  - latent_steering_raw, latent_steering_gain_effective, latent_steer_clamped, latent_steer_abs (new)
+  - latent_desired_speed_preclamp, latent_desired_speed, latent_speed_error, latent_accel_raw, latent_brake_raw
+- Steering weights and behavior:
+  - weight_steer_closest_x (positive): steer toward center based on tile x
+  - weight_steer_lookahead_theta (negative): steer to follow lookahead heading
+  - weight_steer_heading_indicator (negative): steer based on current heading
+  - weight_steer_omega (positive param; applied as -abs(...)): damping proportional to |omega|
+  - weight_steering_gain and weight_steer_speed_scale: reduce steering authority with speed
+  - weight_steer_omega_speed_scale (new, small): optionally increase omega damping at higher speeds
+- Desired speed weights:
+  - weight_speed_base, weight_speed_curv, weight_speed_lat (negative), weight_speed_omega (negative)
+  - weight_speed_slip (negative, applied only to positive slip)
+  - weight_speed_lookahead_theta_abs (negative) and weight_speed_lookahead_theta_abs_speed (new, negative) to increase lookahead effect at high speed
+  - weight_speed_steer_interaction (new, negative) to penalize large steering at speed in desired speed computation
+- Actuator gains: weight_accel_gain, weight_brake_gain
+- Action variance: weight_var_* terms as before; diag std clamped to [min_std, max_std] for stability
+
+All parameters are registered as nn.Parameter and initial values reflect expected sign/magnitude. Info dictionary returns weight_* as shape (1,) and latent_* as shape (B,).
+

@@ -1,0 +1,6 @@
+{
+  "prompt": "/Users/zfy/Projects/meta/llm-log-analysis/logs/IL_11130120/prompt_iter000.json",
+  "prompt_sha256": "f8dd3bb33334527bba4c27c2139fb321fb88443d16a5ee83bab10682294c34d5",
+  "extracted_policy_sha256": "43163313df4ca4664d0c039d8daee862555ce387f9a3185132054faf0672903a",
+  "model_file_matches_by_ast": []
+}

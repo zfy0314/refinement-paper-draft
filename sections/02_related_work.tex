@@ -1,31 +1,38 @@
 \section{Related work}
 \label{sec:related}
-% Target: 0.5 page. Section 2, before representation and method.
-% Source mapping: content_mapping.md, Sections 2.1--2.2.
-% Add verified bibliography entries when drafting; no placeholder citations.
 
 \subsection{Structured policies and learning from demonstrations}
 \label{sec:related-structured}
-\begin{itemize}
-    \item Position KIM as the representation/parameter-learning foundation and
-    distinguish the present iterative refinement contribution. Briefly compare
-    other relevant structured-policy methods after verifying their assumptions.
-    \item Compress the old learning-from-demonstrations survey to the distinction
-    needed here: numerical learning in a fixed policy versus revision of its
-    computations, with downstream RL as a secondary use.
-\end{itemize}
+
+Structured policy learning separates the choice of computations from the estimation of their numerical parameters.
+KIM uses an LLM to implement expert knowledge as a sparse, semantic policy program and learns its parameters from demonstrations~\citep{zhu2025sample}.
+InterPReT supports interactive teaching through user-directed restructuring and parameter training~\citep{zhu2026interpret}.
+We build on this representation and use execution diagnostics to generate structural changes automatically, reducing the need for an expert to formulate corrective instructions.
+
+Language can also guide the representation through which demonstrations are interpreted.
+ALGAE alternates language-guided feature construction with learning reward weights from demonstrations~\citep{peng2024adaptive}.
+Our method instead revises the policy's action-generating computations and analyzes their evaluated latent values during interaction.
+For example, the LLM can revise the feature and coefficient that determine target speed directly.
+
+Programmatic control provides a complementary route from language to robot behavior.
+Code as Policies generates executable robot policies~\citep{liang2022code}, while VoxPoser constructs spatial value maps for planning~\citep{huang2023voxposer}.
+MLES combines multimodal program generation with evolutionary search and visual behavior feedback~\citep{hu2025multimodal}.
+Our method combines generated control code with demonstration-based parameter fitting, using the policy's semantic latent space as a numerical diagnostic interface between revisions.
 
 \subsection{LLM-guided program revision and execution feedback}
 \label{sec:related-refinement}
-\begin{itemize}
-    \item Reuse the closest policy-code generation, program-search, and
-    feedback-based refinement references from IJCAI26. Compare the artifact
-    being revised, its trainable parameters, and the feedback supplied to the LLM.
-    \item Locate the present method through its combination of semantic
-    internal traces, generated numerical analyses, and repeated fitting/revision.
-    Avoid claims of priority or universal superiority without supporting sources.
-    \item Briefly relate the proposed loop to execution-guided code debugging
-    and generated tests. Verify references when drafting; frame this as an
-    explanatory analogy, with learned parameters and continuous closed-loop
-    behavior making the policy-refinement setting distinct.
-\end{itemize}
+
+Execution-guided code revision is now a central mechanism in agentic systems.
+Self-Debugging uses execution results and code explanations to improve generated programs~\citep{chen2023selfdebug}.
+AlphaEvolve iteratively edits algorithms using evaluator feedback and evolutionary search~\citep{novikov2025alphaevolve}, while the Darwin G\"odel Machine modifies the coding agent itself and evaluates changes on coding benchmarks~\citep{zhang2025darwin}.
+We extend execution-guided revision to trainable controllers, where each edited program undergoes demonstration fitting before evaluation.
+
+Recent robotic agents extend iterative revision into physical execution.
+ENPIRE organizes scene reset, policy improvement, rollout evaluation, and code evolution into a repeatable robot-learning loop; its agents can revise training infrastructure and algorithm code as well as policies~\citep{xiao2026enpire}.
+ASPIRE writes and repairs robot control programs using detailed multimodal traces, accumulates reusable skills, and explores task sequences through evolutionary search~\citep{lu2026aspire}.
+Our method uses the semantic latent space of a trainable policy as the interface for revision: named latent values become columns in a rollout table, and generated analysis programs diagnose the computations that produce them.
+
+The choice of executable object and feedback distinguishes these approaches.
+Eureka revises reward code using RL training feedback~\citep{ma2023eureka}; ASPIRE repairs control programs and builds a skill library; ENPIRE exposes the wider robot-learning workflow to coding agents.
+Here, the LLM writes both a trainable policy and a separate diagnostic program, with demonstration fitting between policy revisions.
+Semantic structure connects these two programs, allowing numerical execution results to guide targeted changes to the controller.

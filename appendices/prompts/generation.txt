@@ -1,0 +1,16 @@
+* The model should represent the causal structure of a good policy for the task. Each intermediate step in the policy should have semantic meanings and the learnable parameters should only connect the variables that are correlated (or have a causal relationship) as opposed to a generic MLP where all the hidden nodes are connected.
+* For a discrete output space, the model should predict a (potentially unnormalized) distribution among those discrete actions. For a continuous action space, predict the parameters of a multivariate normal distribution for the action (action mean and the lower triangle matrix L such that Sigma = LL^T). Make sure the $L$ is a lower Cholesky matrix. If you think the actions should not be correlated then the L can be a diagonal matrix for simplicity.
+* Along with the action distribution prediction, also return an `info_dict` which is a dictionary that records all the intermediate steps and the weights. This will be aggregated into a table for further analysis. For the weights, name the key `weight_{variable_name}` and for the intermediate steps, name the key `latent_{variable_name}`. If an intermediate feature has multiple dimensions, break it down to multiple keys. But keep the name semantically meaningful. For example, instead of `latent_1`, `latent_2`, ... use `latent_{feature_name}` instead. Each value in the dictionary should be of shape `(1,)` or `(B,)` where B is the batch size.
+* Keep the model simple.
+* Represent new features as linear combinations of old features when possible. If you are very certain that no bias term is needed (i.e., the feature value should be 0 if all inputs are 0), then don't include the bias term to make it easier to learn.
+* There might be cases where a linear combination is not sufficient; then you may use other operations, such as multiplication, to represent the interaction between two features.
+* Register all weights and bias terms as `nn.Parameter` with `required_grad=True`. Don't use `register_buffer`.
+* Don't name a parameter using PyTorch keywords such as `self.half`.
+* When initializing the values for each weight and bias, set a value based on positive or negative correlation (e.g., if the input feature is negatively correlated, then set its weight to -0.1) instead of using random initialization. Pay attention to the scale of the input features and output actions and set the magnitude of the numbers accordingly.
+* There should be no magic number in the `forward` function. Constants like 0, 1, and 0.5 are fine.
+* Make sure all operations are differentiable so that the parameters can be learned by gradient descent.
+* You may use any of the functions defined in PyTorch (e.g., `torch.logical_and`, `torch.clamp`, `torch.abs`, `torch.square`, etc.).
+* Refrain from using `torch.sigmoid` or `torch.tanh` to avoid the vanishing gradient problem.
+* Make sure the gradient can flow back to the parameters. Avoid in-place operations (always use a new variable name instead) or constructing new tensors (always use `torch.stack` or `torch.cat` instead).
+* Assume the inputs are batched.
+# Make sure the model handles `torch.nan` gracefully.

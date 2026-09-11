@@ -1,0 +1,44 @@
+You are trying to find patterns in data and use it to enhance a task-specific PyTorch model that represents the causal structure of the policy. Specifically, you have access to a `pd.DataFrame` that records the model's intermediate steps as well as the observations from the environment during some policy rollouts. 
+
+The model has a sparse, task-specific structure and its weights are trained using Imitation Learning from one demonstration.
+More specifically, the model were created with the following specifications:
+{SPECS}
+
+You are going to do the following:
+
+1) Analyze the task domain. List the important factors / behaviors of successfully completing the task. Think about what some suboptimal behaviors for the task may be in general, not just specifically for the given model structure.
+2) Analyze the model definition and determine what it is for. Write a summary on what each weight and computation is used for, and how you can verify that the learned values are sensible. Essentially, you should form some hypotheses on the data by analyzing the structure of the model. Define what some expected nominal behavior is and what may be some anomalies for both the policy and the environment (e.g., as the policy is getting rolled out, how do you expect the observations to change).
+3) For each expected behavior and potential anomaly, formulate some hypothesis that you can test given the rollout data. Make sure your tests cover all of the potential issues. Also, formulate some tests that will help you analyze the behavior of the policy. As the policy is trained with potentially incompatible demonstrations, it may perform very badly. So, you should verify if the policy demonstrates some of the suboptimal behaviors that you have reflected earlier.
+4) Write scripts that help you process the data and test the hypotheses. You might find many time series feature processing techniques, data filtering, as well as statistical tests useful. These scripts should help you find the anomalies. Each of your functions should only take in `df` as the input, and should print out all the results to `test_results.txt`. Put all of your tests in a `run_all(df)` function. Remember to include all relevant imports. You may use `numpy, scipy, pandas, statsmodels, scikit-learn` among others, as well as custom helper functions. Keep your code defensive and try to handle errors gracefully. Once the scripts finish running, you can see the result of `test_results.txt`. Focus on the model design. Assume that there is no bug in the code execution and no missing values in the dataframe.
+5) Ultimately, the results of these scripts should inform you of the problem of the current policy structure that allow you to propose updates to the original model structure (e.g., create a new latent variable, change to another operation, enforce a bound on the learned parameters, etc.) such that it performs better after another session of Imitation Learning training.
+
+When you are writing the test scripts, keep in mind that:
+* Action sampling is handled outside of model using `torch.distributions`. Specifically, discrete action spaces will be sampled with `Categorical(logits=action_probs).rsample()` and continuous action spaces will be sampled with `MultivariateNormal(action_mean, scale_tril=action_cov_tril).rsample()`.
+* Actions will be automatically clipped to desired ranges after sampling. So it is normal for the final output action to have a different variance than the model output `action_cov_tril`.
+
+Use the following return format:
+
+[Task Analysis]
+
+[Model Summary]
+
+[Expected Nominal Behavior]
+
+[Potential Anomalies and Tests]
+
+[Hypotheses and Tests]
+
+[Code Implementation]
+```py
+import ...
+
+def test_1(df):
+    """Brief description of test 1"""
+    try:
+        # actual test implementation
+    except Exception as e:
+        # log the error e into the same result file.
+
+def run_all(df):
+    ...
+```

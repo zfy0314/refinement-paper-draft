@@ -1,0 +1,96 @@
+Test results generated at Sat Jan 17 22:13:31 2026
+
+=== test_1_column_consistency ===
+latent_closest_x vs obs_tile_0_x: mean_abs_diff=9.261829e-03, max_abs_diff=1.037600e-01, frac_mismatch=0.999
+latent_closest_theta vs obs_tile_0_theta: mean_abs_diff=1.302865e-02, max_abs_diff=1.128367e-01, frac_mismatch=1.000
+latent_speed vs obs_current_speed: mean_abs_diff=1.477597e-03, max_abs_diff=2.191204e-02, frac_mismatch=1.000
+latent_heading_indicator vs obs_current_angle: mean_abs_diff=1.289546e-02, max_abs_diff=1.910010e-02, frac_mismatch=0.869
+latent_omega vs obs_current_omega: mean_abs_diff=4.001125e-02, max_abs_diff=8.249515e-02, frac_mismatch=1.000
+latent_lookahead_theta_mean: mean_abs_diff=1.315817e-02, max_abs_diff=9.325302e-02, frac_mismatch=1.000
+latent_sharp_ahead equality fraction with max(obs borders[0:6]): 0.983
+latent_wheel_slip: mean_abs_diff=1.254938e-03, max_abs_diff=1.825000e-02, frac_mismatch=0.998
+test_1_column_consistency completed successfully.
+
+=== test_2_action_consistency ===
+steering_raw reconstruction: mean_abs_diff=8.071521e-09, max_abs_diff=6.139141e-08, frac_mismatch=0.000
+steer after gain+clamp: mean_abs_diff=5.566847e-09, max_abs_diff=5.657760e-08, frac_mismatch=0.000
+desired_speed reconstruction: mean_abs_diff=2.296791e-08, max_abs_diff=7.852650e-08, frac_mismatch=0.000
+speed_error reconstruction: mean_abs_diff=2.293275e-08, max_abs_diff=8.133778e-08, frac_mismatch=0.000
+accel_raw reconstruction: mean_abs_diff=1.250143e-08, max_abs_diff=4.994419e-08
+brake_raw reconstruction: mean_abs_diff=5.080638e-09, max_abs_diff=1.597117e-07
+accel clamp mismatch fraction: 0.000
+brake clamp mismatch fraction: 0.000
+fraction of latent_desired_speed outside [0,1]: 0.000
+test_2_action_consistency completed successfully.
+
+=== test_3_regressions ===
+Steering OLS (no intercept) R^2=1.0000
+Estimated coefs: closest_x=0.098909, lookahead_theta=-0.198185, heading=-3.630562, omega=0.631075
+Mean recorded weights: weight_steer_closest_x=0.098909, weight_steer_lookahead_theta=-0.198185, weight_steer_heading_indicator=-3.630562, weight_steer_omega=0.631075
+Desired speed OLS R^2=1.0000
+Estimated intercept (base)=0.677992, coefs (curv, lat, slip, omega)=[-0.17938644 -0.53922636  0.17290935 -0.13536628]
+Mean recorded speed weights: weight_speed_base=0.677992, weight_speed_curv=-0.179386, weight_speed_lat=-0.539226, weight_speed_slip=0.172909, weight_speed_omega=-0.135366
+test_3_regressions completed successfully.
+
+=== test_4_signs_and_bounds ===
+weight_steer_closest_x: mean=0.098909, expected positive -> PASS
+weight_steer_lookahead_theta: mean=-0.198185, expected negative -> PASS
+weight_steer_heading_indicator: mean=-3.630562, expected negative -> PASS
+weight_steer_omega: mean=0.631075, expected negative -> FAIL
+weight_steering_gain: mean=1.415122, expected positive -> PASS
+weight_speed_base: mean=0.677992, expected in_[0,1] -> PASS
+weight_speed_curv: mean=-0.179386, expected negative -> PASS
+weight_speed_lat: mean=-0.539226, expected negative -> PASS
+weight_speed_slip: mean=0.172909, expected negative -> FAIL
+weight_speed_omega: mean=-0.135366, expected negative -> PASS
+weight_accel_gain: mean=0.578710, expected positive -> PASS
+weight_brake_gain: mean=2.534420, expected positive -> PASS
+weight_var_steer: mean raw param=0.108168, abs used in forward=0.108168
+weight_var_accel: mean raw param=0.167667, abs used in forward=0.167667
+weight_var_brake: mean raw param=0.067246, abs used in forward=0.067246
+test_4_signs_and_bounds completed successfully.
+
+=== test_5_saturation_and_conflicts ===
+steer saturation fraction (|steer|==1): 0.000
+accel saturation fraction (==1): 0.000
+brake saturation fraction (==1): 0.000
+fraction with both accel>1e-3 and brake>1e-3: 0.000
+test_5_saturation_and_conflicts completed successfully.
+
+=== test_6_speed_tracking_and_correlations ===
+Pearson(speed_error, accel) = 0.9981 (p=0.000e+00) expected positive
+Pearson(speed_error, brake) = -0.3310 (p=5.381e-27) expected negative
+speed_error mean=0.154520, std=0.130415
+fraction with |speed_error|>0.1: 0.621
+test_6_speed_tracking_and_correlations completed successfully.
+
+=== test_7_off_track_behavior ===
+fraction of steps at/over track edge (|closest_x|>=0.2): 0.150
+fraction of off-edge steps where sign(steer) aligns with sign(closest_x) (expected correction towards center): 0.960
+desired_speed on-track mean=0.6262, off-track mean=0.5216
+t-test for desired_speed on vs off track: t=12.848, p=5.847e-29
+test_7_off_track_behavior completed successfully.
+
+=== test_8_episode_oscillations ===
+Median steer sign-change rate per step across episodes: 0.1021
+Top 5 episodes by steer sign-change rate:
+  episode 0: rate=0.1021, speed_var=0.007865
+Could not correlate episode oscillation with weight_steer_omega (maybe column missing or constant).
+test_8_episode_oscillations completed successfully.
+
+=== test_9_variance_vs_observed ===
+observed stds: steer=0.269289, accel=0.073997, brake=0.021436
+learned std params (mean abs): steer=0.108168, accel=0.167667, brake=0.067246
+steer: learned_std / observed_std = 0.402
+accel: learned_std / observed_std = 2.266
+brake: learned_std / observed_std = 3.137
+test_9_variance_vs_observed completed successfully.
+
+=== test_10_sharp_ahead_distance ===
+sharp_ahead distances (first sharp tile index within lookahead): mean=1.098, median=0.000
+counts by distance: 0:255, 1:37, 2:37, 3:33, 4:35, 5:22
+test_10_sharp_ahead_distance completed successfully.
+
+
+All tests completed.
+

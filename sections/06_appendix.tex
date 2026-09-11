@@ -1,99 +1,293 @@
-% Outline only. References/appendices are outside the eight-page main-text budget.
-% Source mapping: content_mapping.md, Appendices A--E.
-
 \section{Policy-generation prompts and interfaces}
 \label{app:generation}
 
+The prompts specify the interface between the LLM, the trainable policy, and the execution logger.
+
 \subsection{Shared generation specification}
 \label{app:specification}
-\begin{itemize}
-    \item Reuse the IJCAI26 policy-generation specification: semantic variables,
-    differentiable computation, parameter initialization, action-distribution
-    outputs, and the logging dictionary. Preserve prompts used in experiments;
-    distinguish historical prompt text from any corrected explanatory text.
-\end{itemize}
+
+The shared specification asks for meaningful intermediate computations, trainable coefficients, and an instrumentation dictionary.
+It also specifies action-distribution outputs and initialization based on expected signs and scales.
+\VerbatimInput[breaklines=true,breakanywhere=true,fontsize=\footnotesize]{appendices/prompts/generation.txt}
 
 \subsection{Environment descriptions and observation schemas}
 \label{app:environment}
-\begin{itemize}
-    \item Reuse the Car Racing and Door Opening environment prompts, feature
-    shapes, sign conventions, action spaces, and task information. Verify these
-    against the actual experiment interface before drafting.
-\end{itemize}
+
+Environment descriptions provide the semantic interpretation of each input and output coordinate.
+Car Racing supplies track tiles and vehicle indicators; Door Opening supplies current and previous gripper/door information and a target position.
+Figure~\ref{fig:environments} shows the two environments.
+
+\begin{figure}[!t]
+\centering
+\includegraphics[height=1.25in]{ijcai26/car.png}\hspace{0.55in}
+\includegraphics[height=1.25in]{ijcai26/door.jpg}
+\caption{Car Racing and Door Opening: continuous control from semantic observations.}
+\label{fig:environments}
+\end{figure}
+
+\paragraph{Car Racing.}
+The following schema specifies the inputs to policy generation and diagnostic construction; sensor conventions are detailed in Appendix~\ref{app:car-record}.
+\VerbatimInput[breaklines=true,breakanywhere=true,fontsize=\footnotesize]{appendices/prompts/car_environment.txt}
+
+\paragraph{Door Opening.}
+The description includes current and previous observations, allowing a generated policy to use information about recent motion.
+\VerbatimInput[breaklines=true,breakanywhere=true,fontsize=\footnotesize]{appendices/prompts/door_environment.txt}
 
 \section{Diagnostic and revision prompts}
 \label{app:prompts}
 
+The diagnostic and revision prompts connect policy semantics to numerical execution evidence.
+The LLM first proposes analyses using the code and schema, then receives their results as the basis for a possible edit.
+
 \subsection{Hypothesis generation and analysis execution}
 \label{app:diagnostic-prompts}
-\begin{itemize}
-    \item Include the shared diagnostic system prompt, policy/schema input
-    template, result format, and execution details. Show full scripts for the
-    main example and document error handling from actual implementation records.
-\end{itemize}
+
+The system prompt asks the LLM to consider nominal behavior and possible anomalies before writing analysis code.
+It requests explicit hypotheses, defensive functions over a dataframe, and output in a common results file.
+The full numerical rollout is an input to these generated functions rather than part of the initial diagnostic-generation context.
+\VerbatimInput[breaklines=true,breakanywhere=true,fontsize=\footnotesize]{appendices/prompts/diagnostics_system.txt}
+
+The per-policy template supplies the environment description, model definition, and available columns.
+\VerbatimInput[breaklines=true,breakanywhere=true,fontsize=\footnotesize]{appendices/prompts/diagnostics_input.txt}
+
+The running example uses a generated sign check together with an arithmetic reconstruction check from the same round.
+Listing~\ref{lst:test} shows the slip-coefficient check.
+\nolinenumbers
+\begin{minipage}{\linewidth}
+\begin{lstlisting}[language=Python,caption={Abbreviated generated sign check from round 0.},label={lst:test}]
+checks = {
+    "weight_speed_slip": ("negative", lambda v: v < 0.0),
+}
+for col, (expect, fn) in checks.items():
+    if col not in df.columns:
+        _append(f"{col}: MISSING")
+        continue
+    mean_val = _safe_get(df, col).mean()
+    ok = fn(mean_val)
+    _append(f"{col}: mean={mean_val:.6f}, expected {expect} -> {'PASS' if ok else 'FAIL'}")
+\end{lstlisting}
+\end{minipage}
+\linenumbers
+
+The target-speed calculation satisfies the reconstruction check, but its positive slip coefficient fails the expected sign check (Listing~\ref{lst:results}).
+\nolinenumbers
+\begin{lstlisting}[caption={Target-speed reconstruction and slip-sign diagnostics at round 0.},label={lst:results}]
+=== test_2_action_consistency ===
+desired_speed reconstruction: mean_abs_diff=2.296791e-08, max_abs_diff=7.852650e-08, frac_mismatch=0.000
+
+=== test_4_signs_and_bounds ===
+weight_speed_slip: mean=0.172909, expected negative -> FAIL
+\end{lstlisting}
+\linenumbers
+The generated explanation interprets the wheel mean as a speed-related signal and proposes comparing it with vehicle speed.
+Later analyses revisit the coefficient after fitting the revised proxy, leading to rectification and an explicit sign constraint.
 
 \subsection{Revision, additional tests, and termination}
 \label{app:revision-prompts}
-\begin{itemize}
-    \item Reuse all three response branches from the refinement prompt. Add
-    the actual orchestration, budget, stopping, and any selection rules from
-    experiment records; identify behavior not documented by the old paper.
-\end{itemize}
+
+The revision prompt offers three responses: provide an updated program, request more diagnostic tests, or indicate that no further action is needed.
+It allows changes to the computations and parameterization while preserving the model interface and logging outputs.
+Algorithm~\ref{alg:refinement} summarizes the data flow and permitted interaction branches.
+Here $\Sigma(C)$ denotes the table-column schema exposed by the environment and the policy's logging interface.
+Analysis-code generation depends on this schema and the policy program, independently of the numerical rollout values.
+
+\begin{algorithm}[htbp]
+\caption{Refinement through semantic rollout analysis}
+\label{alg:refinement}
+\begin{algorithmic}[1]
+\REQUIRE Task specification $S$, demonstrations $\mathcal D$, environment
+\STATE $C\gets\mathrm{LLM}(S,\text{generation specification})$
+\WHILE{the refinement procedure continues}
+    \STATE $\theta\gets\mathrm{Fit}(C,\mathcal D)$; $\hat\pi\gets\pi_{C,\theta}$
+    \STATE $T\gets\mathrm{LLM}(S,C,\Sigma(C),\text{diagnostic prompt})$
+    \STATE $X\gets\mathrm{RolloutLog}(C,\theta)$
+    \REPEAT
+        \STATE $r\gets\mathrm{Execute}(T,X)$
+        \STATE $b\gets\mathrm{LLM}(S,C,T,r,\text{revision context})$
+        \IF{$b$ requests additional diagnostics}
+            \STATE $T\gets$ additional analysis code
+        \ENDIF
+    \UNTIL{$b$ proposes a revised program or stops refinement}
+    \IF{$b$ stops refinement} \STATE \textbf{break} \ENDIF
+    \STATE $C\gets$ revised program from $b$
+\ENDWHILE
+\STATE \textbf{return} $\hat\pi$; optionally apply post-refinement RL
+\end{algorithmic}
+\end{algorithm}
+
+\VerbatimInput[breaklines=true,breakanywhere=true,fontsize=\footnotesize]{appendices/prompts/revision.txt}
+
+The refinement loop has a configurable iteration budget, with a default maximum of six rounds and early termination through the LLM's stop response.
+Additional tests run on the current table before the next revision decision.
+If fitting a revised program fails, the LLM can regenerate it using the preceding policy and diagnostic context, with up to five attempts.
 
 \section{Training and evaluation details}
 \label{app:training}
 
 \subsection{Imitation learning and refinement configuration}
 \label{app:il}
-\begin{itemize}
-    \item Provide optimizer settings, initialization/transfer behavior, training
-    stopping criteria, LLM configuration, rollout seeds, evaluation separation,
-    independent-run counts, and uncertainty calculations from saved records.
-\end{itemize}
+
+We minimize Gaussian negative log likelihood with Adam and initialize each revised model from the coefficients specified in its generated code.
+The optimizer defaults to a learning rate of 0.03, batch size 512, and 1,000 minibatch updates.
+The LLM is GPT-5-mini with high reasoning effort.
+
+Each task uses one demonstration, with evaluation over ten unseen settings.
+Car Racing evaluation uses mean actions, a maximum horizon of 1,000 steps, and environment seeds 1000--1009.
+Door Opening evaluation samples Gaussian actions over 500-step episodes, with environment and PyTorch sampling seeds 0--9 (Appendix~\ref{app:door-record}).
+For these evaluations, uncertainty is the population standard deviation across episodes.
 
 \subsection{Post-refinement reinforcement learning}
 \label{app:rl}
-\begin{itemize}
-    \item Adapt the IJCAI26 RL subsection after checking objective, sequence
-    grouping, indexing, and implementation consistency. State the assumption
-    behind grouping states at corresponding times across sampled trajectories.
-    Document RL hyperparameters and exact reset accounting.
-\end{itemize}
 
-\section{Complete refinement records}
+We optimize a clipped policy-gradient objective using group-relative reward-to-go and window likelihoods.
+For trajectory $i$, let $T_i$ be its length and let $\mathcal I_t$ contain trajectories valid at time $t$.
+We compute
+\begin{equation}
+ R_t^i=\sum_{u=t}^{T_i-1}\gamma^{u-t}r_u^i,
+ \qquad A_t^i=\frac{R_t^i-\mu_t}{\sigma_t+10^{-8}},
+ \label{eq:rl-advantage}
+\end{equation}
+where $\mu_t$ and $\sigma_t$ are the population mean and standard deviation over $\mathcal I_t$.
+
+The likelihood ratio multiplies action likelihoods over a window of $L$ valid steps.
+In log-probability form,
+\begin{equation}
+ \rho_{it}(\theta)=\exp\!\left[
+ \sum_{u=t}^{t+L-1}\bigl(\log\pi_\theta(a_u^i\mid s_u^i)
+ -\log\pi_{\theta_{\mathrm{old}}}(a_u^i\mid s_u^i)\bigr)\right].
+ \label{eq:rl-ratio}
+\end{equation}
+For valid window starts, the clipped objective is
+\begin{equation}
+ \mathcal J(\theta)=\mathbb E_{i,t}\!\left[
+ \min\!\left(\rho_{it}(\theta)A_t^i,
+ \operatorname{clip}(\rho_{it}(\theta),1-\epsilon,1+\epsilon)A_t^i\right)\right].
+ \label{eq:rl-objective}
+\end{equation}
+An entropy bonus encourages exploration, with its coefficient decaying linearly over training.
+The optimizer defaults are $\gamma=0.98$, clipping threshold $\epsilon=0.2$, Adam learning rate $0.007$, 20 sampled episodes per update, three optimization epochs, and initial entropy coefficient 0.01; the default Car Racing likelihood window is 150 steps.
+Unlike GSPO's length-normalized sequence ratio~\citep{zheng2025group}, Eq.~\eqref{eq:rl-ratio} uses the product of likelihoods within each window.
+Trajectories share an initial condition and are grouped by time step for advantage estimation.
+
+\subsection{Statistical comparisons}
+\label{app:statistics}
+
+Table~\ref{tab:statistics} reports the six two-sided comparisons in Section~\ref{sec:refinement-results}, with Holm correction controlling the family-wise error rate across these tests.
+For Car Racing, we estimate Welch statistics from Table~\ref{tab:results}, taking $n=10$ per policy and converting each population standard deviation $\sigma$ to the sample variance $s^2=n\sigma^2/(n-1)$.
+The standard error is $\sqrt{s_A^2/n+s_B^2/n}$, with Welch--Satterthwaite degrees of freedom.
+These are independent-sample approximations; the shared evaluation settings call for paired comparisons, whose cross-policy covariance cannot be determined from aggregate summaries.
+The estimates therefore describe evidence under this independence assumption, rather than exact paired significance.
+
+Door Opening compares episode-minimum distances for iterations 0 and 3, paired by the same initial handle position, target, and action-sampling seed.
+The mean distance reduction is 0.4375, with a paired 95\% confidence interval of $[0.3926,0.4823]$ and $t(9)=22.07$.
+All tests characterize variation across evaluation episodes for the fitted policies, not variation across independent training or refinement runs.
+No significance test is applied to MLES.
+
+\begin{table}[!t]
+\centering\small
+\setlength{\tabcolsep}{5pt}
+\begin{tabular}{@{}lrrr@{}}
+\toprule
+Comparison & Improvement & $p$ & Holm-adjusted $p$ \\
+\midrule
+Car: refined vs.\ initial, IL & 115.5 & 0.0073 & 0.0293 \\
+Car: refined vs.\ initial, low RL & 243.5 & $6.8\!\times\!10^{-10}$ & $4.1\!\times\!10^{-9}$ \\
+Door: iteration 0 vs.\ 3 & 0.4375 & $3.8\!\times\!10^{-9}$ & $1.9\!\times\!10^{-8}$ \\
+Car: refined vs.\ MLP, IL & 245.4 & 0.0193 & 0.0579 \\
+Car: refined vs.\ MLP, low RL & 308.7 & 0.0207 & 0.0579 \\
+Car: refined vs.\ MLP, high RL & 56.3 & 0.1361 & 0.1361 \\
+\bottomrule
+\end{tabular}
+\caption{Evaluation comparisons with correction across six tests.
+Improvement denotes increased return for Car Racing and reduced distance for Door Opening.
+Car Racing tests approximate independent samples from rounded summaries; the Door Opening test uses paired episode outcomes.}
+\label{tab:statistics}
+\end{table}
+
+\section{Policy refinement examples}
 \label{app:records}
+
+The following examples illustrate how generated diagnostics guide policy changes in Car Racing and how successive revisions improve Door Opening behavior.
 
 \subsection{Car Racing programs, diagnostics, and rollouts}
 \label{app:car-record}
-\begin{itemize}
-    \item Recover the before/after programs, demonstration-fitting details,
-    relevant log rows, full diagnostic outputs, and post-refit evaluations for
-    the main example. Record provenance and iteration identifiers.
-\end{itemize}
+
+Table~\ref{tab:matched-record} follows the slip-to-target-speed branch through three revisions.
+Repeated sign checks lead from an unconstrained wheel-mean feature to a compressed positive residual with a nonpositive contribution to target speed.
+
+\begin{table}[!t]
+\centering\small
+\begin{tabular}{@{}clrp{.40\linewidth}@{}}
+\toprule
+Round & Slip feature & Fitted $w_q$ & Diagnosis and revision \\
+\midrule
+0 & Mean wheel reading & $+0.1729$ & Positive coefficient violates the intended sign; replace wheel mean with a relative proxy. \\
+1 & $\bar u-v$ & $+3.8367$ & Positive coefficient persists; rectify the residual. \\
+2 & $\max(\bar u-v,0)$ & $+6.6077$ & Sign anomaly persists; constrain the coefficient to be nonpositive. \\
+3 & $p/(1+\alpha p)$ & $-0.00390$ & Compression and $w_q=-|\eta|$ preserve the branch's speed-reducing role after fitting. \\
+\bottomrule
+\end{tabular}
+\caption{Successive revisions align the slip proxy's learned contribution with its intended speed-reducing role.}
+\label{tab:matched-record}
+\end{table}
+
+Figure~\ref{fig:latent-traces} compares 1,000-step rollouts of the initial and third-round policies.
+The shared axis limits expose changes in the slip proxy's scale and the resulting target-speed trajectories.
+
+\paragraph{Observation timing.}
+The recorder evaluates the model, advances the environment, and then writes the observation columns.
+Consequently, each row contains current-step latents but successor-step observations.
+Several generated observation-consistency checks compare values across this one-step offset, producing false inconsistency flags.
+The target-speed reconstruction and the plotted latent trajectories use quantities from the same forward pass.
+
+\paragraph{Sensor meanings.}
+The environment normalizes vehicle speed by 100 and wheel angular readings by 200.
+Their difference defines a normalized slip proxy in the recorded policies, rather than a physical slip velocity.
+The policy-generation prompt labels the second indicator as absolute heading; the environment supplies a wheel-joint steering angle in this field.
 
 \subsection{Door Opening progression}
 \label{app:door-record}
-\begin{itemize}
-    \item Expand the existing iteration images and narrative with matched
-    programs/diagnostics where available. Preserve ineffective intermediate
-    revisions and distinguish measured distance from qualitative task success.
-\end{itemize}
+
+The Door Opening policy develops a coordinated reach-and-pull strategy over three revisions.
+The initial policy approaches ineffectively, while intermediate revisions alter the approach before the third revision coordinates it with pulling.
+We evaluate the fitted policy after each revision using sampled Gaussian actions across ten distinct handle and target configurations, with a 500-step horizon.
+The evaluation environment uses Meta-World 3.0.0, MuJoCo 3.3.7, Gymnasium 1.1.1, and PyTorch 2.5.1.
+
+For episode $e$, the metric is
+\begin{equation}
+ d_e^{\min}=\min_{1\le t\le T_e}
+ \bigl\|h_{e,t}-g_e\bigr\|_2,
+ \label{eq:door-distance}
+\end{equation}
+where $h_{e,t}$ is the world-space position of the simulator's handle geometry after a step, $g_e$ is its target position, and $T_e\le500$.
+We report the mean and population standard deviation of $d_e^{\min}$ across the ten episodes.
+The sequence is $0.547530\pm0.000000$, $0.544925\pm0.007813$, $0.539759\pm0.022594$, and $0.110052\pm0.059459$, corresponding to the four policies in Figure~\ref{fig:door_iterations}.
+
+\input{tables/diagnostic_coverage}
 
 \section{Extended feedback and semantic analyses}
 \label{app:extended}
 
-\subsection{Diagnostic and strategy coverage}
+We analyze the strategies represented by the policies, the coverage of generated diagnostics, and the interaction and token budgets used for refinement.
+
+\subsection{Diagnostic coverage}
 \label{app:coverage}
-\begin{itemize}
-    \item Reuse the detailed diagnostic-coverage and semantic-strategy tables.
-    Explain manual categories, coding criteria, and limits of coverage counts
-    as measures of semantic correctness or diagnostic usefulness.
-\end{itemize}
+
+Generated diagnostics cover arithmetic consistency, parameter signs, action saturation, and relationships between control actions and task state (Table~\ref{tab:test-coverage}).
+Section~\ref{sec:edit-analysis} describes the four diagnostic categories and compares the strategies represented by each policy in Table~\ref{tab:semantic}.
+Their coverage changes as the policy evolves: later rounds add checks of angular velocity, off-track behavior, and steering at sharp turns.
+
 
 \subsection{Feedback budgets and supplementary results}
 \label{app:budgets}
-\begin{itemize}
-    \item Document raw-table subsampling, feedback comparability, token
-    aggregation, refinement histories, and supplementary baseline/RL rows from
-    existing records. Do not populate missing measurements with inferred data.
-\end{itemize}
+
+Figure~\ref{fig:result-car} compares the initial policy and four revisions under three feedback conditions, with a demonstration return of 867 as a reference.
+The fourth analysis-guided revision reaches $881.99\pm29.33$ return.
+It uses four diagnostic rollouts and eight analysis/revision calls; including initial policy generation gives nine LLM calls.
+Interaction budgets exclude final evaluation episodes.
+
+Table~\ref{tab:tokens} summarizes input and output token usage per round across six refinement rounds, using population standard deviations.
+For generated analysis, each round combines diagnostic-generation and revision calls, averaging 25,984.5 input tokens and 37,492.7 output tokens, with standard deviations of 3,432.5 and 2,944.4 respectively.
+Output usage includes reasoning tokens.
+Direct table feedback averages 110.1k input tokens and 17.9k output tokens per round.
+Generated analysis trades additional code-generation output for a substantially smaller input context while processing the full rollout table.

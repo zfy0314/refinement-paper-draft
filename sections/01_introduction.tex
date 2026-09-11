@@ -1,30 +1,50 @@
 \section{Introduction}
 \label{sec:introduction}
-% Target: 1 page including title and abstract. Paragraph plan, not prose.
-% Source mapping: content_mapping.md, Introduction.
+
+Learning a control policy from a small number of demonstrations depends on choosing a useful policy structure.
+A driving demonstration, for example, contains steering and pedal commands, but does not explicitly state how track geometry, target speed, and lateral correction should interact.
+Knowledge Informed Models (KIM) address this problem by translating an expert's strategy description into a structured policy and fitting its numerical parameters to demonstrations~\citep{zhu2025sample}.
+The policy computes actions through named latent quantities, such as target speed and speed error, that express the expert's intended strategy.
+
+An LLM can reduce the burden of writing that strategy, but its initial structure may not match the relationships needed to reproduce the demonstration reliably.
+A model may label a wheel-speed reading as ``slip,'' for example, even though wheel speed also increases during ordinary forward motion.
+Gradient training can compensate by changing coefficients, including reversing a coefficient's intended sign, but it cannot replace the feature computation or add a missing dependency on vehicle speed.
+The problem is therefore not just how to fit the initial policy, but how to revise the assumptions encoded in its program.
+
+We approach structural refinement as code debugging.
+When a program behaves unexpectedly, a coding agent can inspect intermediate values, write checks, run them, and use their outputs to revise the code.
+We apply the same pattern to a trainable controller: fit it to a demonstration, execute it in the environment, investigate its internal behavior, and edit the policy before training again.
+Figure~\ref{fig:overview} shows this loop and how its stages connect.
+A structural edit becomes a hypothesis tested through another round of learning and execution.
+
+\begin{figure}[!t]
+\centering
+% Trim the source PDF's blank bottom/top margins, preserving the original asset.
+\includegraphics[width=\linewidth,trim=0bp 69bp 0bp 127bp,clip]{teaser0909.pdf}
+\caption{Policy refinement as debugging through execution.
+\textbf{Generate the initial policy (Section~\ref{sec:initial-generation}):} an LLM writes a structured program from the task description and observation semantics.
+\textbf{Fit parameters (Section~\ref{sec:fitting}):} gradient training uses demonstration state--action pairs.
+\textbf{Generate analysis code (Section~\ref{sec:diagnostics}):} the LLM designs checks from the policy structure and its logging schema.
+\textbf{Collect tabular trajectories (Section~\ref{sec:traces}):} policy rollouts record observations, actions, and named latent values.
+\textbf{Execute analyses and revise the structure (Section~\ref{sec:revision}):} the code runs on the collected trajectories, and the LLM uses its results to update the policy program.
+The updated program returns to parameter fitting and another refinement cycle.
+\textbf{Reinforcement learning (Section~\ref{sec:rl-method}):} after the final demonstration fit, reward-based training optimizes parameters within the demonstration-aligned structure.}
+\label{fig:overview}
+\end{figure}
+
+Semantic structure makes this debugging interface concrete.
+An aggregate return indicates how well the car drove, whereas a named latent such as target speed identifies a computation whose inputs and outputs can be examined.
+Logging those quantities creates a table with interpretable columns and one row per execution step.
+Given the program and column names, an LLM can generate analyses of coefficient signs, speed regulation, or action saturation, then connect the results to specific computations that it can change.
+The numerical analyses run outside the LLM on the complete table, so the model reasons over diagnostic results instead of reading thousands of trajectory rows.
+
+Our method alternates these two forms of learning: gradients fit the parameters within a structure, while execution analysis guides revisions to the structure itself.
+The initial LLM uses the task description and observation semantics; the numerical learner uses the demonstration.
+The resulting controller runs independently of the LLM at deployment.
+Our contributions are:
 \begin{itemize}
-    \item \textbf{Paragraph 1---why structure matters.} Explain how task-specific
-    computations and dependencies support learning from limited demonstrations.
-    Introduce KIM briefly as prior work; keep its representation and empirical
-    contributions distinct from this paper's refinement contribution.
-    \item \textbf{Paragraph 2---why refinement is needed.} Preserve the motivation
-    of reducing the expert's burden of specifying a strategy. Explain that an
-    LLM's domain knowledge can differ from the strategy expressed in a
-    demonstration, leaving poor behavior after parameter fitting. An initial
-    structure is provisional, not necessarily incapable of solving the task.
-    \item \textbf{Paragraph 3---semantics as an interface.} Connect meaningful
-    intermediate quantities and explicit dependencies to measurable execution
-    behavior and editable computations. Establish both roles of structure:
-    inductive bias for fitting and an interface for refinement.
-    \item \textbf{Paragraph 4---the iterative solution.} Preview the complete
-    fit--execute--analyze--revise--refit cycle. Distinguish task descriptions
-    used for initial generation from demonstrations used for parameter learning
-    and policy rollouts used for diagnostic feedback.
-    Use a brief debugging analogy: instrument execution, write diagnostic checks,
-    inspect results, revise, and rerun. Explain that here the program is a learned
-    controller, and each structural edit is followed by parameter fitting.
-    \item \textbf{Paragraph 5---contributions and evidence.} State the iterative
-    procedure, its semantic diagnostic interface, and the two-task refinement
-    evaluation. Preview feedback comparisons and downstream RL as supporting
-    evidence. Do not present the KIM representation as a new contribution.
+    \item An iterative refinement procedure that combines demonstration-based parameter fitting with LLM-guided revision of a structured policy program.
+    \item A tabular data-analysis interface grounded in the policy's semantic latents, using generated executable checks to connect rollout evidence to program edits.
+    \item Experiments on Car Racing and Door Opening showing improved imitation learning, generalization to unseen settings, and more efficient subsequent reinforcement learning, together with analyses of feedback and structural changes.
 \end{itemize}
+Building on KIM's structured-policy representation, our method uses its exposed semantics to refine the LLM's initial control strategy through execution.

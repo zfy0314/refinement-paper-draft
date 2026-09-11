@@ -7,20 +7,33 @@
 
 \usepackage[utf8]{inputenc}
 \usepackage[T1]{fontenc}
-\usepackage{courier} % Embedded Type 1 monospace font, including URLs.
+\renewcommand{\ttdefault}{lmtt} % Embedded Type 1 monospace, including verbatim quotes.
 \usepackage{amsmath,amssymb}
 \usepackage{graphicx}
+\usepackage{wrapfig}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,positioning,calc}
 \usepackage{booktabs}
+\usepackage{algorithm}
+\usepackage{algorithmic}
+\usepackage{listings}
+\usepackage{fvextra}
 \usepackage{microtype}
 \usepackage{xcolor}
+\usepackage{stmaryrd}
 \usepackage[hidelinks]{hyperref}
 \usepackage{url}
+\newcommand{\todo}[1]{\textcolor{red}{[TODO: #1]}}
 \graphicspath{{figures/}}
+\lstset{basicstyle=\ttfamily\footnotesize,breaklines=true,columns=fullflexible,keepspaces=true,showstringspaces=false,frame=single,framesep=4pt}
+
 \hypersetup{pdfauthor={},pdftitle={Iterative Policy Refinement through Semantic Rollout Analysis}}
 
-\title{Iterative Policy Refinement through Semantic Rollout Analysis}
+\title{Iterative Policy Structure Refinement through Semantic Rollout Analysis}
 \author{Anonymous Author(s)}
 
+% Keep normal paragraph spacing when floats leave spare page space.
+\raggedbottom
 \begin{document}
 \maketitle
 
@@ -29,7 +42,7 @@
 \end{abstract}
 
 % Main-text limit: 8 pages (long) or 4 pages (short), including figures.
-% Planning outline only. Page budgets apply to the eventual manuscript.
+% Expanded content revision: defer page-budget compression until the narrative is settled.
 % Introduction 1; related work 0.5; background/interface 1; refinement 2.5;
 % experiments 2.5; discussion/conclusion 0.5. KIM is background only.
 \input{sections/01_introduction}
@@ -38,6 +51,7 @@
 \input{sections/03_method}
 \input{sections/04_experiments}
 \input{sections/05_conclusion}
+\label{sec:main-end}
 
 % The style hides this environment during anonymous review.
 \begin{ack}
@@ -45,8 +59,7 @@
 \end{ack}
 
 \bibliographystyle{plainnat}
-% Enable when research citations are added; this outline has no citations yet.
-% \bibliography{references}
+\bibliography{references}
 
 % The NEmo call does not currently specify whether a checklist is required.
 % The official checklist is retained; enable and complete if requested.

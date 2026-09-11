@@ -1,0 +1,27 @@
+# Features
+The input to the model is a tensor representing the position of the robot's gripper and the door at the current and previous time step.
+
+Features: B x 39 where B is the batch size
+0-2. The x, y, z coordinates of the gripper at the current time step.
+3. A scalar value that represents how open/close the gripper is at the current time step.
+4-6. The x, y, z coordinates of the door.
+7-10. The quaternion (x, y, z, w) representing the orientation of the door.
+11-17. Not used
+18-20. The x, y, z coordinates of the gripper at the previous time step.
+21. A scalar value that represents how open/close the gripper was at the previous time step.
+22-24. The x, y, z coordinates of the door at the previous time step.
+25-28. The quaternion (x, y, z, w) representing the orientation of the door at the previous time step.
+29-35. Not used
+36-38. The x, y, z coordinates of the target position for the door to be opened to.
+
+# Output Space
+A tensor of shape (B, 4) where the first three elements are the x, y, z motion of the gripper relative to its current position, and the last element is the gripper open/close command (1 for open, 0 for close).
+
+# Objective and Reward
+The objective is to reach for the handle on the door and pull the door open to a desired angle. The reward is given by the distance to the desired angle, when the gripper first hold onto the handle, and with a large positive reward for successfully opening the door. A small negative reward for each time step taken.
+
+# Additional Notes
+* The door revolves around a vertical axis.
+* The door handle is horizontal.
+* The gripper always points down.
+* Name your model "OpenDoorPolicy".

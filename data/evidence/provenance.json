@@ -1,0 +1,100 @@
+{
+  "source_root": "/Users/zfy/Projects/meta/llm-log-analysis",
+  "run": "logs/IL_racecar",
+  "files": {
+    "logs/IL_racecar/prompt_iter000.json": "4b4d1ecfa0d86d3e9b1007d58cd55c8868a5bfdc2d960afab962b9b204457fcc",
+    "logs/IL_racecar/model_racecar_iter001.py": "3453157a7d320aca922613dbc1819d7d8969627ac74561f14c2482af39ef9fd9",
+    "logs/IL_racecar/model_racecar_iter002.py": "f5448f9f9f5a556c43f479774bdccc33e94bcec026fbba891a56370af0de7e97",
+    "logs/IL_racecar/model_racecar_iter003.py": "f54d7f6dff948f264042c2092e85357e8478ea5078ed1675da23a494a4678358",
+    "logs/IL_racecar/results_iter000.txt": "3723e42dc14e0424161492fa9f7c87359750969cd1b7b8eea3bfd6b9d2c4f373",
+    "logs/IL_racecar/tests_iter000.py": "718a8323d25ced39fbd016f0f9f4c5b9220e756faf236953793d67e65813c658",
+    "logs/IL_racecar/prompt_iter001.json": "5ea9a1541a9d4bb4e6ddc9db5c48be5a30408eb2fa904135db5a10b6692dad2f",
+    "logs/IL_racecar/results_iter001.txt": "db38b9872ca4801926c1f58ac87fae1b299a41e0b5767232672d3eeb7c665fb1",
+    "logs/IL_racecar/tests_iter001.py": "b340a29a09f606dd6d38d3e713b50a1373777de4f38454d85cfc3ddac0deefbb",
+    "logs/IL_racecar/prompt_iter002.json": "0b426de722e71250baba336c498c523db325678df190cae1913dacec8117a90e",
+    "logs/IL_racecar/results_iter002.txt": "6f271951eec756497191dcced0ffbb235f1629c5c6a38bc1226bc32d5a95a3a6",
+    "logs/IL_racecar/tests_iter002.py": "93965a0f32104bfc72e79b7b54bd395518026d62258ed0214851d2d62ba58b53",
+    "logs/IL_racecar/logs_iter000.csv": "b61ba69fc5b01e29de154ce56f9054a5a5a8f4efdc61986a3a83b01e0956919d",
+    "logs/IL_racecar/logs_iter001.csv": "32d2585d206e4269301621e4e5ea8625e7bfc4f9fa4cbfa9db2e955ba10a98f8",
+    "logs/IL_racecar/logs_iter002.csv": "defef6a287169700e0b829fe7b66b4ed45ae59fee2961239cd1689b1a29925b9",
+    "logs/IL_racecar/logs_iter003.csv": "d2221f4d5f4ba8d4eb485d0a6be4f168dc6eecdb6947aa4584f7a1e0bbce816b",
+    "logs/IL_racecar/logs_iter004.csv": "be195a83cc8c5e4952ca1f8637dbb5643b74cc6e279e13617312da3d10328527",
+    "count.py": "829e238a9c9c93a3e7efb24178cdfcfbff94e8495ed32ba4bfe6e651364b2e4b",
+    "utils.py": "19167ec2a4e4d6f6d3b2515e4ff1445054ad9423ee3465edd6bb66ab006ba7f1",
+    "exp_il.py": "e4817f04fe4f591a8e543a5a0961a2eee573a6086537de68ab20eeba4493c23f",
+    "exp_rl.py": "49b01dbd581069c6fed858b9eab54ddeb6835b80c2b344dc2239a9d85bc7b869",
+    "env/racecar_env.py": "21c87b601f2092bb34533d3ef8de2f06b0cadf6eb92cab643a5b4f894d9c0457"
+  },
+  "metrics": {
+    "round0": {
+      "rows": 1000,
+      "episodes": 1,
+      "slip_weight": 0.1729093790054321,
+      "slip_latent": "latent_wheel_slip",
+      "slip_latent_range": [
+        0.0,
+        0.5393180251121521
+      ],
+      "latent_speed_same_row_mae": 0.0014775967001914982,
+      "latent_speed_shifted_mae": 0.0,
+      "latent_closest_x_same_row_mae": 0.00926182901083666,
+      "latent_closest_x_shifted_mae": 0.0
+    },
+    "round1": {
+      "rows": 1000,
+      "episodes": 1,
+      "slip_weight": 3.836662769317627,
+      "slip_latent": "latent_wheel_slip_rel",
+      "slip_latent_range": [
+        -0.0406763553619384,
+        0.1112399399280548
+      ],
+      "latent_speed_same_row_mae": 0.0008961991667747499,
+      "latent_speed_shifted_mae": 0.0,
+      "latent_closest_x_same_row_mae": 0.0036591113759113793,
+      "latent_closest_x_shifted_mae": 0.0
+    },
+    "round2": {
+      "rows": 1000,
+      "episodes": 1,
+      "slip_weight": 6.607679843902588,
+      "slip_latent": "latent_wheel_slip_pos",
+      "slip_latent_range": [
+        0.0,
+        0.0174449756741523
+      ],
+      "latent_speed_same_row_mae": 0.0019177859425544743,
+      "latent_speed_shifted_mae": 0.0,
+      "latent_closest_x_same_row_mae": 0.0033799573188298365,
+      "latent_closest_x_shifted_mae": 0.0
+    },
+    "round3": {
+      "rows": 1000,
+      "episodes": 1,
+      "slip_weight": -0.0039033063221722,
+      "slip_latent": "latent_wheel_slip_pos_norm",
+      "slip_latent_range": [
+        0.0,
+        0.049964752048254
+      ],
+      "latent_speed_same_row_mae": 0.0023754385709762577,
+      "latent_speed_shifted_mae": 0.0,
+      "latent_closest_x_same_row_mae": 0.0034943703801836815,
+      "latent_closest_x_shifted_mae": 0.0
+    },
+    "round4": {
+      "rows": 1000,
+      "episodes": 1,
+      "slip_weight": -0.011320961639285,
+      "slip_latent": "latent_wheel_slip_pos_norm",
+      "slip_latent_range": [
+        0.0,
+        0.0465215668082237
+      ],
+      "latent_speed_same_row_mae": 0.0015443145632743835,
+      "latent_speed_shifted_mae": 0.0,
+      "latent_closest_x_same_row_mae": 0.003920477084117007,
+      "latent_closest_x_shifted_mae": 0.0
+    }
+  }
+}

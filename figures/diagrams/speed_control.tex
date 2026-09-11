@@ -1,0 +1,33 @@
+% A toy speed-control subgraph, paired with speed_control.py.
+\begin{tikzpicture}[
+    x=1cm,y=1cm,>=Stealth,
+    var/.style={draw,line width=.65pt,inner sep=3pt,font=\ttfamily\fontsize{8}{9}\selectfont},
+    obs/.style={var,draw=black!60,fill=black!6},
+    latent/.style={var,draw=blue!65!black,fill=blue!9},
+    action/.style={var,draw=green!40!black,fill=green!12},
+    weight/.style={var,draw=orange!75!black,fill=orange!16},
+    op/.style={draw=black!65,dashed,rounded corners=4pt,
+        line width=.65pt,fill=white,inner sep=4pt,font=\fontsize{8}{9}\selectfont,align=center},
+    flow/.style={->,line width=.65pt},
+    key/.style={font=\fontsize{6.5}{8}\selectfont,inner sep=2pt}
+]
+\node[weight] (target) at (0,0) {target\_speed};
+\node[obs] (speed) at (2,0) {speed};
+\node[op] (subtract) at (1,-.8) {subtract};
+\node[latent] (error) at (1,-1.55) {speed\_error};
+\node[weight] (gain) at (-1.6,-1.55) {gain};
+\node[op] (control) at (-.3,-2.5) {ReLU $\to$ multiply\\$\to$ clamp to $[0,1]$};
+\node[action] (throttle) at (-.3,-3.45) {throttle};
+\draw[flow] (target) -- node[left,font=\scriptsize] {} (subtract);
+\draw[flow] (speed) -- node[right,font=\scriptsize] {} (subtract);
+\draw[flow] (subtract) -- (error);
+\draw[flow] (error) -- (control);
+\draw[flow] (gain) -- (control);
+\draw[flow] (control) -- (throttle);
+\matrix[column sep=3pt] at (-.3,-4.15) {
+    \node[obs,key] {Observation}; &
+    \node[latent,key] {Latent}; &
+    \node[action,key] {Action}; &
+    \node[weight,key] {Weight (trainable)}; \\
+};
+\end{tikzpicture}

@@ -1,0 +1,66 @@
+{
+  "aggregation": "Two calls per refinement round; population std across six rounds.",
+  "source_note": "prompt_iter000_tmp.json.meta.json begins with a stray 1; ignored only during parsing.",
+  "source_hashes": {
+    "prompt_iter000.json.meta.json": "8a68b1437fdaa7408ef9f345ca65f1a0a0b85149fd5c7ab41e43a489185744e7",
+    "prompt_iter000_tmp.json.meta.json": "e497dc4c1dc308f8d95aad6c89dc4925e44d39c79eedef1b9a995bf42b817e93",
+    "prompt_iter001.json.meta.json": "47a7fde8529e59b41581bf8823468055f6b38b19647931c83efbc97b0b717c27",
+    "prompt_iter001_tmp.json.meta.json": "910dac36de6360b4cfeea26c67886f109f6ba9b129ec5cc44ad84a249cfae47d",
+    "prompt_iter002.json.meta.json": "35845b4286373fac49432cb248cda68f36018e5bdb160c0e2a6a66206227f065",
+    "prompt_iter002_tmp.json.meta.json": "f9afb0959dea94e84fd795d6d9011b617cbc7140e83ed17dc00816b5b0e967b5",
+    "prompt_iter003.json.meta.json": "6cb8487bed7c2ff5623d96ed69aef71edbb567124d2bad0c1153c0c70baf53eb",
+    "prompt_iter003_tmp.json.meta.json": "21767e042f38bef8d7f4c0fbe543aababdaee3ccdf1cd5bc22e839b630593f54",
+    "prompt_iter004.json.meta.json": "0a1472850295a01f89424d3832b36d7f8dc759bc9923918efe6371cdc5d1c763",
+    "prompt_iter004_tmp.json.meta.json": "27db9d5068ce399951db47de07e7231fd467ad61bf63a19e6094136a2cf00e91",
+    "prompt_iter005.json.meta.json": "5ef39e975876cb619ade38061b8411247fc279806a86ed2b1516696054808c64",
+    "prompt_iter005_tmp.json.meta.json": "f3aae087dd73fb2af7a9a096732518f1d0c5800a9d1cf0b982ce8e8a37c8b7fb"
+  },
+  "rounds": [
+    {
+      "round": 0,
+      "input_tokens": 20294,
+      "output_tokens": 32444,
+      "reasoning_tokens": 18432
+    },
+    {
+      "round": 1,
+      "input_tokens": 23364,
+      "output_tokens": 35473,
+      "reasoning_tokens": 20160
+    },
+    {
+      "round": 2,
+      "input_tokens": 25479,
+      "output_tokens": 40519,
+      "reasoning_tokens": 24256
+    },
+    {
+      "round": 3,
+      "input_tokens": 28735,
+      "output_tokens": 36593,
+      "reasoning_tokens": 19200
+    },
+    {
+      "round": 4,
+      "input_tokens": 27401,
+      "output_tokens": 39595,
+      "reasoning_tokens": 23488
+    },
+    {
+      "round": 5,
+      "input_tokens": 30634,
+      "output_tokens": 40332,
+      "reasoning_tokens": 21056
+    }
+  ],
+  "summary": {
+    "input_tokens": {
+      "mean": 25984.5,
+      "population_std": 3432.538261500761
+    },
+    "output_tokens": {
+      "mean": 37492.666666666664,
+      "population_std": 2944.424146680562
+    }
+  }
+}

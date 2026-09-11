@@ -1,0 +1,8 @@
+{
+  "prompt": "/Users/zfy/Projects/meta/llm-log-analysis/logs/IL_11202146/prompt_iter000.json",
+  "prompt_sha256": "799f69ecbdf64365e7c8cb3d7e4fccd7b196a7194b3ef3ba94668da17a20655f",
+  "extracted_policy_sha256": "8d7f929cf26e721c7a8612a031ec3c22b43ebd83186053a16b4d2e96b7c37ef0",
+  "model_file_matches_by_ast": [
+    "/Users/zfy/Projects/meta/llm-log-analysis/models/model_door_iter000.py"
+  ]
+}

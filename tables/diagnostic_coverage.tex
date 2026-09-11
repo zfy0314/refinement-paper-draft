@@ -1,0 +1,42 @@
+\begin{table}[!t]
+\small
+\centering
+\begin{tabular}{l|c|c|c}
+\toprule
+\textbf{Data Analysis} & \textbf{Iter 1} & \textbf{Iter 2} & \textbf{Iter 3} \\
+\midrule
+\multicolumn{4}{l}{\textbf{Sanity Checks}} \\
+\midrule
+Weights stay constant & $\checkmark$ & $\checkmark$ & $\checkmark$ \\
+Signs consistent with assumptions & $\checkmark$ & $\checkmark$ & $\checkmark$ \\
+Summary statistics & $\checkmark$ &   & \\
+\midrule
+\multicolumn{4}{l}{\textbf{Actions}} \\
+\midrule
+Output reconstruction & $\checkmark$ &  & $\checkmark$ \\
+Latent reconstruction & $\checkmark$ & $\checkmark$ & $\checkmark$ \\
+Action saturation & $\checkmark$ & $\checkmark$ & $\checkmark$ \\
+Accelerate/brake consistency & $\checkmark$ & $\checkmark$ &  \\
+Jerkiness & $\checkmark$ &  & $\checkmark$ \\
+\midrule
+\multicolumn{4}{l}{\textbf{Behavior}} \\
+\midrule
+Steering corrects lateral offset & $\checkmark$ &   & \\
+Steering corrects heading error &  &   & \\
+Slow at sharp turns & $\checkmark$ & $\checkmark$  & \\
+Slow at edge of the track &  & $\checkmark$  & \\
+Slow when angular velocity is high &  & $\checkmark$  & \\
+Slow when wheels are slipping & $\checkmark$ & $\checkmark$  & \\
+Off-track portion &  &  & $\checkmark$ \\
+\midrule
+\multicolumn{4}{l}{\textbf{Coefficient Importance}} \\
+\midrule
+Extra steering at sharp turns &  &  & $\checkmark$ \\
+\midrule
+\textbf{Number of test functions} & 13 & 10 & 10 \\
+\bottomrule
+\end{tabular}
+\caption{Generated diagnostics adapt to the policy across three refinement rounds.
+Checks cover computational consistency, action behavior, and task-specific control relationships.}
+\label{tab:test-coverage}
+\end{table}

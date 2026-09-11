@@ -1,0 +1,174 @@
+Test results for RacecarPolicy's rollouts
+Started at 2026-01-17T22:26:29.788890
+
+
+=== test_basic_info ===
+Dataset rows: 1000
+Unique episodeID: 1
+Rows per episode (min, median, max): 1000, 1000.0, 1000
+
+=== test_latent_consistency ===
+latent_lookahead_theta_mean: mismatches 992/1000 (99.200%)
+Sample mismatches (index, logged value):
+   Unnamed: 0  episodeID  latent_lookahead_theta_mean
+0           0          0                    -0.001371
+1           1          0                    -0.001406
+3           3          0                    -0.001410
+4           4          0                    -0.001402
+5           5          0                    -0.001387
+latent_lookahead_theta_abs_mean: mismatches 969/1000 (96.900%)
+Sample mismatches (index, logged value):
+   Unnamed: 0  episodeID  latent_lookahead_theta_abs_mean
+0           0          0                         0.001371
+1           1          0                         0.001406
+3           3          0                         0.001410
+4           4          0                         0.001402
+5           5          0                         0.001387
+latent_sharp_ahead: mismatches 18/1000 (1.800%)
+Sample mismatches (index, logged value):
+     Unnamed: 0  episodeID  latent_sharp_ahead
+69           69          0                 0.0
+111         111          0                 1.0
+262         262          0                 0.0
+293         293          0                 1.0
+367         367          0                 0.0
+latent_closest_x: mismatches 987/1000 (98.700%)
+Sample mismatches (index, logged value):
+   Unnamed: 0  episodeID  latent_closest_x
+0           0          0          0.000497
+2           2          0          0.000504
+3           3          0          0.000502
+4           4          0          0.000497
+5           5          0          0.000489
+latent_wheel_abs_mean: mismatches 998/1000 (99.800%)
+Sample mismatches (index, logged value):
+   Unnamed: 0  episodeID  latent_wheel_abs_mean
+0           0          0               0.000000
+1           1          0               0.018250
+2           2          0               0.034857
+3           3          0               0.053054
+4           4          0               0.066598
+latent_speed: mismatches 999/1000 (99.900%)
+Sample mismatches (index, logged value):
+   Unnamed: 0  episodeID  latent_speed
+0           0          0      0.000000
+1           1          0      0.021912
+2           2          0      0.033981
+3           3          0      0.043571
+4           4          0      0.052536
+latent_heading_indicator: mismatches 988/1000 (98.800%)
+Sample mismatches (index, logged value):
+   Unnamed: 0  episodeID  latent_heading_indicator
+0           0          0                 -0.001371
+1           1          0                 -0.001398
+2           2          0                 -0.001414
+4           4          0                 -0.001422
+5           5          0                 -0.001416
+latent_omega: mismatches 998/1000 (99.800%)
+Sample mismatches (index, logged value):
+   Unnamed: 0  episodeID  latent_omega
+0           0          0      0.000000
+1           1          0      0.000544
+2           2          0      0.000078
+3           3          0     -0.000008
+4           4          0     -0.000127
+latent_wheel_slip_rel: mismatches 999/1000 (99.900%)
+Sample mismatches (index, logged value):
+   Unnamed: 0  episodeID  latent_wheel_slip_rel
+0           0          0               0.000000
+1           1          0              -0.003662
+2           2          0               0.000876
+3           3          0               0.009483
+4           4          0               0.014063
+latent_wheel_slip_pos: mismatches 15/1000 (1.500%)
+Sample mismatches (index, logged value):
+   Unnamed: 0  episodeID  latent_wheel_slip_pos
+1           1          0               0.000000
+2           2          0               0.000876
+3           3          0               0.009483
+4           4          0               0.014063
+5           5          0               0.016435
+
+=== test_steering_computation ===
+steering_raw mismatches: 0 / 1000
+steering_gain_effective mismatches: 0 / 1000
+steer_clamped mismatches: 0 / 1000
+output_clipped_steer matches steer_clamped calc: 1000 / 1000
+
+=== test_desired_speed_and_actuators ===
+desired_preclamp mismatches: 0 / 1000
+desired_speed (post clamp) mismatches: 0 / 1000
+speed_error mismatches: 0 / 1000
+accel_raw mismatches: 0 / 1000
+output_clipped_accelerate matches clamped accel: 1000 / 1000
+brake_raw mismatches: 0 / 1000
+output_clipped_brake matches clamped brake: 1000 / 1000
+Rows with both accel>0 and brake>0: 0 / 1000
+
+=== test_variance_and_cov ===
+Steer std min/max (pre-clamp): 0.052427 / 0.172451
+Accel std min/max (pre-clamp): 0.175797 / 0.176617
+Brake std min/max (pre-clamp): 0.011505 / 0.098035
+Steer std clamped to min 0 rows
+Steer std clamped to max 0 rows
+
+=== test_weight_stability_and_signs ===
+weight_steer_closest_x: mean=0.072771, std=0, min=0.072771, max=0.072771
+weight_steer_lookahead_theta: mean=-0.469863, std=0, min=-0.469863, max=-0.469863
+weight_steer_heading_indicator: mean=-2.192046, std=0, min=-2.192046, max=-2.192046
+weight_steer_omega: mean=-0.001182, std=6.50521e-19, min=-0.001182, max=-0.001182
+  SIGN MISMATCH (expected 1, median sign -1)
+weight_steer_omega_speed_scale: mean=0.000000, std=0, min=0.000000, max=0.000000
+weight_steering_gain: mean=1.191762, std=0, min=1.191762, max=1.191762
+weight_steer_speed_scale: mean=0.406688, std=0, min=0.406688, max=0.406688
+weight_speed_base: mean=1.175946, std=0, min=1.175946, max=1.175946
+weight_speed_curv: mean=-0.792497, std=0, min=-0.792497, max=-0.792497
+weight_speed_lat: mean=0.310908, std=0, min=0.310908, max=0.310908
+  SIGN MISMATCH (expected -1, median sign 1)
+weight_speed_slip: mean=6.607680, std=0, min=6.607680, max=6.607680
+  SIGN MISMATCH (expected -1, median sign 1)
+weight_speed_omega: mean=-0.129797, std=2.77556e-17, min=-0.129797, max=-0.129797
+weight_speed_lookahead_theta_abs: mean=-1.274157, std=0, min=-1.274157, max=-1.274157
+weight_speed_lookahead_theta_abs_speed: mean=1.014414, std=0, min=1.014414, max=1.014414
+  SIGN MISMATCH (expected -1, median sign 1)
+weight_speed_steer_interaction: mean=1.689615, std=0, min=1.689615, max=1.689615
+  SIGN MISMATCH (expected -1, median sign 1)
+weight_accel_gain: mean=0.320394, std=0, min=0.320394, max=0.320394
+weight_brake_gain: mean=0.337880, std=0, min=0.337880, max=0.337880
+weight_var_steer: mean=0.052427, std=2.08167e-17, min=0.052427, max=0.052427
+weight_var_steer_sharp: mean=0.108833, std=0, min=0.108833, max=0.108833
+weight_var_steer_speed: mean=0.018184, std=3.46945e-18, min=0.018184, max=0.018184
+weight_var_accel: mean=0.175797, std=0, min=0.175797, max=0.175797
+weight_var_accel_sharp: mean=-0.000820, std=0, min=-0.000820, max=-0.000820
+  SIGN MISMATCH (expected 1, median sign -1)
+weight_var_brake: mean=0.011505, std=3.46945e-18, min=0.011505, max=0.011505
+weight_var_brake_sharp: mean=-0.086530, std=1.38778e-17, min=-0.086530, max=-0.086530
+  SIGN MISMATCH (expected 1, median sign -1)
+
+=== test_action_saturation_and_simultaneous ===
+Fraction steer saturated (|steer|>=0.98): 0/1000 = 0.000%
+Fraction accel saturated (>=0.999): 0/1000 = 0.000%
+Fraction brake saturated (>=0.999): 0/1000 = 0.000%
+Rows with both accel>0 and brake>0: 0 / 1000
+
+=== test_sharp_and_slip_effects ===
+Desired speed when sharp ahead (n=372): mean=0.4043; otherwise mean=1.0000; t=-437.918, p=0.000e+00
+Correlation desired_speed vs wheel_slip_pos: r=0.0803, p=1.109e-02
+Median weight_speed_slip in dataset: 6.607680
+
+=== test_lookahead_and_steer_correlation ===
+Pearson correlation lookahead_theta_mean vs steer_clamped: r=-0.9732, p=0.000e+00
+Median weight_steer_lookahead_theta: -0.469863
+Sign consistent: negative weight and negative correlation.
+
+=== test_omega_damping_and_steer_gain_speed_dependence ===
+omega_damping positive (>1e-8) in 0 rows (should be 0 or near 0)
+Correlation speed vs steering_gain_effective: r=-0.9977, p=0.000e+00
+Expected negative correlation (gain decreases with speed).
+
+=== test_offtrack_and_oscillation ===
+Off-track (|obs_tile_0_x|>0.2) rows: 37 / 1000 (3.700%)
+Mean sign-flip rate per step across episodes: 0.0090
+Top episodes by flip-rate (episodeID, flips, length):
+  0, flips=9, len=1000, rate=0.0090
+[2026-01-17T22:26:29.916714] All tests completed successfully.

@@ -1,0 +1,105 @@
+[Analysis of Test Results]
+
+Summary of the important findings from test_results.txt and how they compare to the original model expectations:
+
+- Internal consistency is good: test_2 shows the recorded latents and weights reproduce the outputs exactly (reconstruction differences ~1e-8). That means the policy outputs are faithful to the recorded weights and latents — the failure is not a logging/compute bug inside the forward pass, but a modeling/feature-semantic issue or insufficient expressivity of the parameterization.
+
+- Slight mismatch vs raw observations: latent_* vs obs_* differences are small but not zero (closest_x mean abs diff ≈ 9e-3, lookahead_theta_mean ≈ 1.3e-2). This is small and may reflect normalization or recorder rounding; it is not the main problem.
+
+- Weight sign anomalies vs prior expectations:
+  - weight_steer_omega is positive (mean ≈ +0.631) while we expected omega to act as damping (negative contribution). Test reports this as FAIL.
+  - weight_speed_slip is positive (mean ≈ +0.1729) while we expected slip to reduce desired speed (negative). Test reports this as FAIL.
+  These indicate the model learned a different causal mapping than the one we assumed.
+
+- Regression recovered weights exactly (R^2 = 1.0), confirming the model learned a coherent linear mapping from latents to outputs, but that mapping has unexpected signs for some inputs.
+
+- Desired-speed / throttle behavior:
+  - latent_desired_speed is within [0,1] (fraction outside [0,1] = 0). Good.
+  - Speed error is biased positive (mean speed_error ≈ 0.1545) and 62% of steps have |speed_error| > 0.1 — the policy is often trying to accelerate (expert likely wants higher speed than current). Accel correlates very strongly with speed_error (Pearson 0.998), brake less strongly.
+
+- Actuator saturation/conflict: no saturation and no simultaneous accel+brake — behavior is internally consistent.
+
+- Variance mismatch:
+  - Observed stds: steer 0.269, accel 0.074, brake 0.021.
+  - Learned std params (mean abs in logs): steer 0.108, accel 0.168, brake 0.067.
+  - Ratios show steer variance is under-estimated (0.40× observed), accel & brake variances are over-estimated (2.27× and 3.14×). This suggests the constant-diagonal, state-independent variance parameterization does not match the true action variability / confidence structure.
+
+- Sharp-corner distribution: sharp_ahead often present at index 0 (first tile sharp), i.e., immediate corners are frequent.
+
+Interpretation / likely causes:
+- The positive sign for weight_speed_slip suggests the recorded "wheel slip" (mean of four abs wheel sensors) is correlating positively with speed (i.e., it's actually measuring wheel rotational speed, not slip). The model learned to treat it like a speed proxy — hence a positive coefficient — because given the current feature, that was the best fit to the expert data. Using the raw wheel-abs mean is ambiguous: it mixes "wheel rotation magnitude" (which increases with speed) and actual slip (wheel rotational velocity > vehicle forward speed). This mismatch causes a sign flip vs our semantic expectation.
+- The positive sign for weight_steer_omega indicates either (a) the sign convention for omega differs from our assumption (maybe omega positive means rotation that requires steering in the same direction), or (b) the model exploits correlations between omega and the other latents (collinearity) to match expert actions, possibly amplifying steering rather than damping it. Either way, treating omega only linearly and with its raw sign is brittle.
+- Variance mismatch indicates that a single global diagonal variance is insufficient. Variability appears to depend on state (corners vs straight, speed), so a state-dependent variance will give more accurate uncertainty estimates and may improve learning stability.
+
+Net conclusion: the model is internally consistent and has learned to reproduce the demonstrated actions well given its structure. However, some semantically expected relationships are inverted because the raw features used are ambiguous or because the linear form doesn't capture the directional invariances we want (e.g., damping should act on magnitude of angular velocity, not its sign). Also, constant variances are inadequate.
+
+Because these causes are relatively clear and the fixes are small and interpretable, I recommend a targeted model update that (a) fixes ambiguous features by using relative/absolute forms that match causal intuition, (b) makes damping depend on magnitude of rotation, (c) makes steering gain speed-dependent to reduce oscillations at high speed, and (d) makes action variances state-dependent.
+
+[Model Update Suggestions]
+
+Concrete, simple updates that should help learning and make semantics more robust:
+
+1. Interpret wheel sensors as "relative slip" rather than raw wheel speed:
+   - Replace wheel_slip = mean(wheel abs) with wheel_slip_rel = mean(wheel abs) - speed. This separates wheel rotation due to forward speed from extra rotation (slip). A negative correlation (weight_speed_slip < 0) will now correctly reduce desired speed when wheels are spinning faster than the vehicle.
+
+2. Use magnitude of angular velocity for damping:
+   - Replace weight * omega with a damping term proportional to |omega| and enforce a negative sign (i.e., -abs(w_omega) * |omega|). This makes damping consistent regardless of the sign convention of omega and prevents the model from amplifying oscillations by accidentally using a wrong sign.
+
+3. Make steering gain depend on current speed:
+   - Use an effective steering gain = base_gain / (1 + k_speed * speed). This reduces steering aggressiveness at high speeds and helps stability (reduces oscillation).
+
+4. Add lookahead theta magnitude as a desired-speed modifier:
+   - Add a weight on mean(abs(lookahead theta)) to reduce desired speed for sharper/longer turns.
+
+5. Clamp desired_speed to [0,1] before computing speed_error (defensive).
+
+6. Make action variances state-dependent:
+   - Use a small base std per action plus extra std when sharp corner ahead and/or as a function of speed, implementing std = abs(base) + abs(mult) * sharp + abs(mult2) * speed. This better matches observed variance patterns (larger variance in corners, etc.).
+
+7. Keep the model simple and explainable:
+   - Keep linear combinations for main latents, add only a few interpretable extra latents (wheel_slip_rel, lookahead_theta_abs_mean) and scalar transforms (abs on omega, speed-scaling on steering gain).
+
+These changes are small, differentiable, and preserve explainability. They address the two main sign anomalies seen in the tests and the variance mismatch.
+
+[Model Summary]
+
+New RacecarPolicy (summary of all parameters, latents and computations):
+
+- Inputs:
+  - tiles: (B, L, 4) with tile features (x, y, theta, border)
+  - indicators: (B, 7) with [speed, heading_abs, omega, wheel_FL, wheel_FR, wheel_RL, wheel_RR]
+
+- Latents created in forward:
+  - latent_closest_x: tiles[:,0,0]
+  - latent_closest_theta: tiles[:,0,2]
+  - latent_lookahead_theta_mean: mean over lookahead of tile thetas
+  - latent_lookahead_theta_abs_mean: mean(abs(thetas)) over lookahead (new)
+  - latent_sharp_ahead: max border in lookahead
+  - latent_wheel_abs_mean: mean of four wheel abs sensors
+  - latent_wheel_slip_rel: wheel_abs_mean - speed (new, expected to capture slip)
+  - latent_speed: indicators[:,0]
+  - latent_heading_indicator: indicators[:,1]
+  - latent_omega: indicators[:,2]
+  - latent_steering_raw: linear sum of centering + lookahead theta contrib + heading contrib + omega damping
+  - latent_steering_gain_effective: steering_gain / (1 + steer_speed_scale * speed) (new)
+  - latent_desired_speed_preclamp: base + curv*sharp + lat*|x| + slip*w_slip_rel + omega_term + lookahead_theta_abs term
+  - latent_desired_speed: clamped desired speed in [0,1]
+  - latent_speed_error: desired_speed - speed
+  - latent_accel_raw: ReLU(speed_error * accel_gain)
+  - latent_brake_raw: ReLU(-speed_error * brake_gain)
+
+- Weights (all registered nn.Parameter and returned as weight_* keys):
+  - Steering: weight_steer_closest_x (positive), weight_steer_lookahead_theta (negative), weight_steer_heading_indicator (negative),
+      weight_steer_omega (magnitude; used with abs and negative damping), weight_steering_gain (positive), weight_steer_speed_scale (positive).
+  - Desired speed: weight_speed_base, weight_speed_curv, weight_speed_lat, weight_speed_slip (negative, applied to wheel_slip_rel), weight_speed_omega (negative applied to |omega|), weight_speed_lookahead_theta_abs (negative).
+  - Gains: weight_accel_gain, weight_brake_gain.
+  - Variance: weight_var_steer_base, weight_var_steer_sharp, weight_var_steer_speed, weight_var_accel_base, weight_var_accel_sharp, weight_var_brake_base, weight_var_brake_sharp.
+  - For backward compatibility, expose weight_var_steer, weight_var_accel, weight_var_brake as the base terms (so logs expecting old keys won't break).
+
+- Outputs:
+  - action_mean: (B, 3) [steer_clamped, accel_clamped, brake_clamped]
+  - action_cov_tril: (B, 3, 3) diagonal L with state-dependent std on diagonal
+  - info_dict: all weight_* as (1,) tensors and all latent_* as (B,) tensors.
+
+Rationale: these changes address ambiguous sensor semantics (wheel sensors) and sign ambiguity (omega sign), add speed-dependent steering scaling for stability, and allow state-dependent uncertainty which better matches observed variability.
+

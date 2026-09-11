@@ -1,0 +1,83 @@
+Policy structure tests - results
+================================
+
+=== test_weights_stability ===
+weight_steer_closest_x: std=0.000e+00, unique_count=1
+weight_steer_lookahead_theta: std=0.000e+00, unique_count=1
+weight_steer_heading_indicator: std=0.000e+00, unique_count=1
+weight_steer_omega: std=5.421e-20, unique_count=1
+weight_steering_gain: std=0.000e+00, unique_count=1
+weight_steer_speed_scale: std=1.041e-17, unique_count=1
+weight_speed_base: std=0.000e+00, unique_count=1
+weight_speed_curv: std=0.000e+00, unique_count=1
+weight_speed_lat: std=0.000e+00, unique_count=1
+weight_speed_slip: std=0.000e+00, unique_count=1
+weight_speed_omega: std=0.000e+00, unique_count=1
+weight_speed_lookahead_theta_abs: std=0.000e+00, unique_count=1
+weight_accel_gain: std=0.000e+00, unique_count=1
+weight_brake_gain: std=3.469e-18, unique_count=1
+weight_var_steer: std=6.939e-18, unique_count=1
+weight_var_steer_sharp: std=4.163e-17, unique_count=1
+weight_var_steer_speed: std=0.000e+00, unique_count=1
+weight_var_accel: std=2.776e-17, unique_count=1
+weight_var_accel_sharp: std=4.337e-19, unique_count=1
+weight_var_brake: std=6.939e-18, unique_count=1
+weight_var_brake_sharp: std=0.000e+00, unique_count=1
+
+=== test_latents_consistency ===
+latent_closest_x vs obs_tile_0_x: mean_abs_diff=3.6591e-03, max_abs_diff=5.0014e-02
+latent_closest_theta vs obs_tile_0_theta: mean_abs_diff=7.1699e-03, max_abs_diff=8.0213e-02
+latent_speed vs obs_current_speed: mean_abs_diff=8.9620e-04, max_abs_diff=2.1912e-02
+latent_heading_indicator vs obs_current_angle: mean_abs_diff=1.7187e-03, max_abs_diff=1.2810e-02
+latent_omega vs obs_current_omega: mean_abs_diff=6.8692e-03, max_abs_diff=5.4838e-02
+Inferred lookahead L = 6 (MAE=7.1603e-03) comparing latent_lookahead_theta_mean to obs_tile_0..obs_tile_5
+latent_lookahead_theta_abs_mean vs computed (L=6): mean_abs_diff=5.5708e-03, max_abs_diff=5.3955e-02
+latent_sharp_ahead vs max(obs_tile_0..obs_tile_5_border): mean_abs_diff=1.9000e-02, mismatches=19/1000
+latent_wheel_abs_mean vs obs mean: mean_abs_diff=8.1003e-04, max_abs_diff=1.8666e-02
+latent_wheel_slip_rel vs computed: mean_abs_diff=3.4900e-04, max_abs_diff=9.9116e-03
+
+=== test_steering_computation ===
+steering_raw: mean_abs_diff=1.6682e-09, max_abs_diff=2.8431e-08
+steering_raw: rows with abs(diff)>1e-5 : 0/1000
+steering_gain_effective: mean_abs_diff=4.1870e-08, max_abs_diff=1.2684e-07
+final steer (after gain and clamp): mean_abs_diff=3.3126e-09, max_abs_diff=6.1579e-08
+final steer: rows with abs(diff)>1e-5 : 0/1000
+Pearson(steering_raw, closest_x) = r=-0.4087, p=1.503e-41
+Pearson(steering_raw, lookahead_theta_mean) = r=-0.9754, p=0.000e+00
+Pearson(steering_raw, heading_indicator) = r=-0.9952, p=0.000e+00
+Pearson(steering_raw, abs(omega)) = r=-0.4629, p=2.963e-54
+
+=== test_speed_and_actuation_consistency ===
+desired_preclamp: mean_abs_diff=2.6189e-08, max_abs_diff=1.1336e-07
+desired_speed (after clamp): mean_abs_diff=2.3585e-08, max_abs_diff=1.0457e-07
+speed_error: mean_abs_diff=2.4244e-08, max_abs_diff=1.0457e-07
+accel_raw: mean_abs_diff=1.6470e-08, max_abs_diff=1.1490e-07
+brake_raw: mean_abs_diff=1.0575e-10, max_abs_diff=1.0456e-09
+final accel (clipped): mean_abs_diff=1.6754e-08, max_abs_diff=1.1603e-07
+final brake (clipped): mean_abs_diff=1.0907e-10, max_abs_diff=1.0458e-09
+Rows where accel>eps and brake>eps: 0/1000
+accel engaged while speed_error<=0: 0/1000
+brake engaged while speed_error>=0: 0/1000
+Correlation desired_preclamp vs wheel_slip_rel: r=0.5268, p=1.698e-72 (expected negative if weight_speed_slip < 0)
+  positive slip subset: r=1.0000, p=1.883e-125
+  negative slip subset: r=-0.3328, p=5.555e-26 (if positive, indicates model increases desired speed when wheels are slower than vehicle)
+
+=== test_regression_steering ===
+Regression (no intercept) steering_raw = c1*closest_x + c2*look_theta + c3*heading + c4*abs(omega)
+  Coefficients: closest_x=0.060214, lookahead_theta=-0.409632, heading=-1.786394, abs(omega)=-0.000319
+  R^2 = 1.0000, n_samples=1000
+Mean logged weights (expected coefficients): closest_x=0.0602136105298996, lookahead_theta=-0.409631609916687, heading=-1.7863942384719849, abs(omega)=-0.0003187968395649999
+Coefficient differences (regression - logged_mean): [np.float64(-4.89022586314114e-10), np.float64(-3.1771154040960425e-09), np.float64(9.675415357790484e-09), np.float64(2.0324085492915214e-09)]
+
+=== test_speed_behavior_stats ===
+Desired speed when sharp=1: mean=0.2005, sharp=0 mean=0.5776, t=-40.6995, p=4.882e-178
+desired_preclamp out of [0,1]: frac_below=0.071, frac_above=0.030 (total rows=1000)
+steer diag std summary: mean=0.1016, median=0.0610, 90p=0.1722
+  Rows with steer std > 0.5: 0/1000
+
+=== test_dynamics_response ===
+Correlation speed_delta vs accel: r=0.9273, p=0.000e+00
+Correlation speed_delta vs brake: r=-0.3663, p=4.441e-33 (expected negative or small)
+Correlation angle_delta vs steer: r=-0.0133, p=6.750e-01 (sign depends on angle convention; magnitude indicates responsiveness)
+
+All tests completed.

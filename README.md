@@ -4,22 +4,33 @@ Anonymous LaTeX starter using the official NeurIPS 2026 style.
 
 ## Current draft status
 
-The draft contains a detailed outline for **Iterative Policy Refinement through
-Semantic Rollout Analysis**, not manuscript prose. The eight-page budget applies
-to the eventual main text. The IJCAI26 refinement study is the primary source;
-KIM is background only.
-Related work is Section 2 and retains two subsections. A Car Racing running
-example begins with a topology in Section 3 and continues through the method,
-using textual parameter-fitting context and illustrated latent traces. The
-debugging analogy explains the diagnostic loop. Post-refinement RL
-remains in the main-text method and results, with technical details in the appendix.
+The full manuscript now follows the revised semantic-analysis/debugging narrative,
+with KIM as background. Related work remains Section 2 with two subsections;
+Section 3 is merged; the method retains its six subsections; Discussion and
+Conclusion are separate sections. The current revision prioritizes complete
+content and figures, with page compression deferred.
 
-- `narrative_options.md`: the chosen narrative and section budgets.
-- `content_mapping.md`: source-to-subsection mapping, reusable assets, and gaps.
-- `sections/`: subsection headings and brief content bullets, including appendices.
+The running example uses actual Car Racing policy versions, diagnostics, and
+rollout traces from `llm-log-analysis/logs/IL_racecar`. TikZ diagrams explain
+the initial topology and before/after slip computation. Figure 1 uses the supplied
+`teaser0909.pdf`, cropped in LaTeX, with stage descriptions and section references
+in its caption. Environment images are in Appendix A.2; Door Opening progression
+and result tables remain in the main text. The feedback
+plot is regenerated from the original numerical arrays using a linear return
+axis. Figure 5 and Table 2 use compact layouts with text wrapping around them.
+Archived-checkpoint inference now reproduces the refined Car Racing
+IL result and all four Door Opening results; see `result_verification.md`.
 
-Bibliography output is temporarily commented out in `main.tex` because the
-outline has no citations. Re-enable it when verified research citations are added.
+- `draft_status.md`: current changes and recovered evidence.
+- `revision_review.md`: final reading, claim audit, and remaining evidence gaps.
+- `result_verification.md`: matched checkpoints, evaluation protocols, corrected
+  IL refinement costs, and reproducible inference commands.
+- `narrative_options.md`: the chosen narrative and section plan.
+- `content_mapping.md`: section-level source mapping.
+- `data/evidence/`, `scripts/`: source snapshots, selected data, provenance, and
+  reproducible extraction/plotting.
+
+The review copy is `output/pdf/semantic_rollout_refinement_draft.pdf`.
 
 ## Build
 
@@ -33,6 +44,8 @@ make
 
 The PDF is `build/main.pdf`. Run `make clean` to remove compiled output.
 For Overleaf, upload the source tree and select `main.tex` with pdfLaTeX.
+The unmodified `wrapfig.sty` (version 3.6, LPPL) is bundled from
+[CTAN](https://ctan.org/pkg/wrapfig) for builds with minimal TeX installations.
 
 ## Edit
 
@@ -44,9 +57,8 @@ For Overleaf, upload the source tree and select `main.tex` with pdfLaTeX.
 - `neurips_2026.sty`: official, unmodified style; do not edit its layout.
 - `vendor/neurips2026/`: original instructions and checklist for reference.
 
-Replace the instructional prose, paper title, and example citation. Update the
-PDF title metadata in `main.tex` along with the visible title. Use `\citet{key}`
-or `\citep{key}` for citations. Remove the appendix if unnecessary.
+Use `\citet{key}` or `\citep{key}` for citations. Resolve the marked evidence gaps
+before preparing a submission version.
 
 ## Submission requirements
 

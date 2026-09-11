@@ -1,0 +1,109 @@
+{
+  "verification_date": "2026-09-09",
+  "source_root": "/Users/zfy/Projects/meta/llm-log-analysis",
+  "protocol": "Fresh inference using original utils.py evaluation routines; no training or LLM requests.",
+  "outputs": {
+    "car_january_round4_mean_action.json": "7a630852a3e46368fca15c4082e108b4e2caca7d2a06ce53a8f2634885f9b580",
+    "car_november_initial_policy_provenance.json": "56b8047ef752663b1025fa10cdb12d40013c50c94d167ea82d3ae8d6c852a550",
+    "car_november_round0_mean_action.json": "9c2527ff06a03e0cd12ba8609552b276def4f8c9775024a0875b65370fa1e03e",
+    "car_november_round1_mean_action.json": "49e41276894df1f0dcd9b9d4a80de430136fe954eee172501f4e6ed8f88a3dc8",
+    "car_november_round2_mean_action.json": "71a1d44dc4a66ccd0501424da6ff21c08502cd1922c94f201cb69385a9520a1b",
+    "car_november_round3_mean_action.json": "298574459492b5bfef42a18e7ad4309cc211fd9711648e3decd4ff61028bb57c",
+    "car_november_round3_sampled.json": "f8919121d510c2c27cd41d4eeede7bc5b49e493fae1f8f9eeddddfdf2c3483bb",
+    "car_november_round4_mean_action.json": "53f62e859a3acfe55878a69e47a0fdb6da7fb958b3b28dd47e1c6760b4dfb217",
+    "car_november_round4_sampled.json": "b3357c92d5d7a3c979dadac4db3e10a950301a8334f8cd0d11a2327a217eee0b",
+    "car_november_round5_mean_action.json": "9c5ece85be1fd76eb15381141ad3b9eeff0947e5a6913031deffe7e28d00ccc1",
+    "door_IL_11192141_round3_mean_action.json": "fc2090ec72dc306771c030910db4c1446be85b8186d3e65c794844d42428f6b4",
+    "door_IL_door_round0_sampled.json": "ecba99574b982275c85202e85814e84cd7f6ffbe5b559ce97c26a1dd60d9f97d",
+    "door_IL_door_round1_sampled.json": "c121c1d6da90deeecdd848c65657c2ff7a387717f57ebfe7deafb2145c78fd68",
+    "door_IL_door_round2_sampled.json": "f831ba88cabb5f335b5b8a6e0c3cce9435526e11cbc7a6247e2e8c0857c73386",
+    "door_IL_door_round3_mean_action.json": "d4b71eb2e796cd9f138da0b7f0cd6764fe5eae375dedd17069a6e8bb1e34a44a",
+    "door_IL_door_round3_sampled.json": "6492e089d117f7bd1f6549e09f4d01f14c557dc118d3dc6daa3a3a402aa26f5c",
+    "door_initial_policy_provenance.json": "122ecc088dc4f68eb17280f93db72cc17fcd772406bb74dac68c885cc8090e62"
+  },
+  "source_files": {
+    "/Users/zfy/Projects/meta/llm-log-analysis/utils.py": "19167ec2a4e4d6f6d3b2515e4ff1445054ad9423ee3465edd6bb66ab006ba7f1",
+    "/Users/zfy/Projects/meta/llm-log-analysis/env/racecar_env.py": "21c87b601f2092bb34533d3ef8de2f06b0cadf6eb92cab643a5b4f894d9c0457",
+    "/Users/zfy/Projects/meta/llm-log-analysis/env/door_env.py": "1c895c5f91b1adc72f6d99c322c72acfe748cad4f8c154efaa9fa0eedc6e5815"
+  },
+  "runner_sha256": "651ca25bf8c86b99bf1e4c79fc3375af977aaaff694c20e8e70ce232c9393b0a",
+  "car_alias_pairs": [
+    [
+      "logs/IL_racecar/model_racecar_iter004.py",
+      "logs/IL_01172209/model_racecar_iter004.py"
+    ],
+    [
+      "logs/IL_racecar/iteration_04/weights_final.pth",
+      "logs/IL_01172209/iteration_04/weights_final.pth"
+    ]
+  ],
+  "car_refinement_history_before_round4": [
+    {
+      "round": 0,
+      "prompt": "/Users/zfy/Projects/meta/llm-log-analysis/logs/IL_racecar/prompt_iter000.json",
+      "prompt_sha256": "4b4d1ecfa0d86d3e9b1007d58cd55c8868a5bfdc2d960afab962b9b204457fcc",
+      "roles": [
+        "developer",
+        "user",
+        "assistant",
+        "user",
+        "assistant"
+      ],
+      "assistant_responses": 2,
+      "rollout": "/Users/zfy/Projects/meta/llm-log-analysis/logs/IL_racecar/logs_iter000.csv",
+      "rollout_sha256": "b61ba69fc5b01e29de154ce56f9054a5a5a8f4efdc61986a3a83b01e0956919d"
+    },
+    {
+      "round": 1,
+      "prompt": "/Users/zfy/Projects/meta/llm-log-analysis/logs/IL_racecar/prompt_iter001.json",
+      "prompt_sha256": "5ea9a1541a9d4bb4e6ddc9db5c48be5a30408eb2fa904135db5a10b6692dad2f",
+      "roles": [
+        "developer",
+        "user",
+        "assistant",
+        "user",
+        "assistant"
+      ],
+      "assistant_responses": 2,
+      "rollout": "/Users/zfy/Projects/meta/llm-log-analysis/logs/IL_racecar/logs_iter001.csv",
+      "rollout_sha256": "32d2585d206e4269301621e4e5ea8625e7bfc4f9fa4cbfa9db2e955ba10a98f8"
+    },
+    {
+      "round": 2,
+      "prompt": "/Users/zfy/Projects/meta/llm-log-analysis/logs/IL_racecar/prompt_iter002.json",
+      "prompt_sha256": "0b426de722e71250baba336c498c523db325678df190cae1913dacec8117a90e",
+      "roles": [
+        "developer",
+        "user",
+        "assistant",
+        "user",
+        "assistant"
+      ],
+      "assistant_responses": 2,
+      "rollout": "/Users/zfy/Projects/meta/llm-log-analysis/logs/IL_racecar/logs_iter002.csv",
+      "rollout_sha256": "defef6a287169700e0b829fe7b66b4ed45ae59fee2961239cd1689b1a29925b9"
+    },
+    {
+      "round": 3,
+      "prompt": "/Users/zfy/Projects/meta/llm-log-analysis/logs/IL_racecar/prompt_iter003.json",
+      "prompt_sha256": "246cf4b3fb53b431e6e9793adb4d547cc75f4cfbbc84e8a365be3f986c506116",
+      "roles": [
+        "developer",
+        "user",
+        "assistant",
+        "user",
+        "assistant"
+      ],
+      "assistant_responses": 2,
+      "rollout": "/Users/zfy/Projects/meta/llm-log-analysis/logs/IL_racecar/logs_iter003.csv",
+      "rollout_sha256": "d2221f4d5f4ba8d4eb485d0a6be4f168dc6eecdb6947aa4584f7a1e0bbce816b"
+    }
+  ],
+  "car_costs": {
+    "diagnostic_rollouts": 4,
+    "recorded_analysis_revision_calls": 8,
+    "initial_generation_calls_from_original_protocol": 1,
+    "total_including_initial_generation": 9
+  },
+  "assertions": "Matched Car Racing mean/std and all four Door Opening mean/std pairs at manuscript precision."
+}

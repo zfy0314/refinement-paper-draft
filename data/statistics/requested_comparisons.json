@@ -1,0 +1,195 @@
+{
+  "scope": "Evaluation of fitted policies; not independent training or refinement runs",
+  "car_assumptions": "n=10 per policy; population SD; independent-sample approximation; cross-policy covariance unavailable",
+  "holm_family": "All six requested non-MLES comparisons; two-sided tests",
+  "car_summary_rows": {
+    "MLP + IL": [
+      636.6,
+      258.6
+    ],
+    "MLP + RL, low compute": [
+      591.8,
+      330.5
+    ],
+    "MLP + RL, high compute": [
+      850.2,
+      101.4
+    ],
+    "Initial structure + IL": [
+      766.5,
+      100.4
+    ],
+    "Initial structure + RL, low compute": [
+      657.0,
+      37.3
+    ],
+    "Initial structure + RL, high compute": [
+      901.1,
+      14.0
+    ],
+    "MLES": [
+      847.1,
+      132.5
+    ],
+    "MLES, limited queries": [
+      240.0,
+      130.3
+    ],
+    "Refined structure + IL": [
+      882.0,
+      29.33
+    ],
+    "Refined structure + RL, low compute": [
+      900.5,
+      14.2
+    ],
+    "Refined structure + RL, high compute": [
+      906.5,
+      24.0
+    ],
+    "Trajectory table": [
+      17.9,
+      1.3
+    ],
+    "Analysis results": [
+      37.5,
+      2.9
+    ]
+  },
+  "door_sources": {
+    "data/verification/2026-09-09/door_IL_door_round0_sampled.json": "ecba99574b982275c85202e85814e84cd7f6ffbe5b559ce97c26a1dd60d9f97d",
+    "data/verification/2026-09-09/door_IL_door_round3_sampled.json": "6492e089d117f7bd1f6549e09f4d01f14c557dc118d3dc6daa3a3a402aa26f5c"
+  },
+  "comparisons": [
+    {
+      "label": "Car: refined vs. initial, IL",
+      "method": "Welch approximation from rounded summaries",
+      "first": "Refined structure + IL",
+      "second": "Initial structure + IL",
+      "n_per_policy": 10,
+      "mean_difference": 115.5,
+      "t": 3.3127332127772835,
+      "df": 10.525027512497717,
+      "p": 0.007329717199941178,
+      "ci95": [
+        38.33698272685419,
+        192.6630172731458
+      ],
+      "p_holm": 0.02931886879976471
+    },
+    {
+      "label": "Car: refined vs. initial, low RL",
+      "method": "Welch approximation from rounded summaries",
+      "first": "Refined structure + RL, low compute",
+      "second": "Initial structure + RL, low compute",
+      "n_per_policy": 10,
+      "mean_difference": 243.5,
+      "t": 18.302982923387948,
+      "df": 11.555075612293916,
+      "p": 6.823689191908031e-10,
+      "ci95": [
+        214.38914439615763,
+        272.61085560384237
+      ],
+      "p_holm": 4.094213515144819e-09
+    },
+    {
+      "label": "Door: iteration 0 vs. 3",
+      "method": "Paired t test of episode-minimum distance",
+      "n_pairs": 10,
+      "seeds": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9
+      ],
+      "mean_difference": 0.43747743007292056,
+      "t": 22.07274749971081,
+      "df": 9,
+      "p": 3.798734225242666e-09,
+      "ci95": [
+        0.3926419286456775,
+        0.48231293150016363
+      ],
+      "before": [
+        0.5475296784522107,
+        0.5475296784522107,
+        0.5475296784522107,
+        0.5475296784522107,
+        0.5475296784522107,
+        0.5475296784522107,
+        0.5475296784522107,
+        0.5475296784522107,
+        0.5475296784522107,
+        0.5475296784522107
+      ],
+      "after": [
+        0.07962521444499253,
+        0.06134115422231929,
+        0.19992627111941122,
+        0.2313250548010353,
+        0.14526043630121846,
+        0.043755704943961686,
+        0.05698729250464698,
+        0.10018896454769369,
+        0.0919135092678347,
+        0.09019888163978786
+      ],
+      "p_holm": 1.8993671126213328e-08
+    },
+    {
+      "label": "Car: refined vs. MLP, IL",
+      "method": "Welch approximation from rounded summaries",
+      "first": "Refined structure + IL",
+      "second": "MLP + IL",
+      "n_per_policy": 10,
+      "mean_difference": 245.39999999999998,
+      "t": 2.828731858365911,
+      "df": 9.231508920947197,
+      "p": 0.019287503336422564,
+      "ci95": [
+        49.89952026918391,
+        440.9004797308161
+      ],
+      "p_holm": 0.05786251000926769
+    },
+    {
+      "label": "Car: refined vs. MLP, low RL",
+      "method": "Welch approximation from rounded summaries",
+      "first": "Refined structure + RL, low compute",
+      "second": "MLP + RL, low compute",
+      "n_per_policy": 10,
+      "mean_difference": 308.70000000000005,
+      "t": 2.7995352111573286,
+      "df": 9.033228044717935,
+      "p": 0.02065665110646256,
+      "ci95": [
+        59.39556500787518,
+        558.004434992125
+      ],
+      "p_holm": 0.05786251000926769
+    },
+    {
+      "label": "Car: refined vs. MLP, high RL",
+      "method": "Welch approximation from rounded summaries",
+      "first": "Refined structure + RL, high compute",
+      "second": "MLP + RL, high compute",
+      "n_per_policy": 10,
+      "mean_difference": 56.299999999999955,
+      "t": 1.6208974195427088,
+      "df": 10.005213402633709,
+      "p": 0.13609085567860943,
+      "ci95": [
+        -21.08636405057112,
+        133.68636405057103
+      ],
+      "p_holm": 0.13609085567860943
+    }
+  ]
+}

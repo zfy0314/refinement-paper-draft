@@ -1,0 +1,118 @@
+{
+  "source_model": "/Users/zfy/Projects/meta/llm-log-analysis/logs/IL_racecar/model_racecar_iter004.py",
+  "model_sha256": "1c35f4f55f0040384facd5876d3fd6aa8f4fc454d0893b48c8c5b7aeae2f6707",
+  "source_checkpoint": "/Users/zfy/Projects/meta/llm-log-analysis/logs/IL_racecar/iteration_04/weights_final.pth",
+  "checkpoint_sha256": "dc1db35a468cab26badfc710bf6ea5b83df0c85c9912316043a8a9bee10fb968",
+  "evaluator": "/Users/zfy/Projects/meta/llm-log-analysis/utils.py",
+  "evaluator_sha256": "19167ec2a4e4d6f6d3b2515e4ff1445054ad9423ee3465edd6bb66ab006ba7f1",
+  "python": "/Users/zfy/miniconda3/envs/IPR/bin/python",
+  "versions": {
+    "torch": "2.5.1",
+    "numpy": "2.2.6",
+    "gymnasium": "1.1.1",
+    "metaworld": "3.0.0",
+    "mujoco": "3.3.7",
+    "box2d-py": "2.3.5"
+  },
+  "kind": "fresh inference from archived checkpoint, not an archived performance log",
+  "device": "cpu",
+  "torch_threads": 1,
+  "settings": {
+    "task": "racecar",
+    "model": "/Users/zfy/Projects/meta/llm-log-analysis/logs/IL_racecar/model_racecar_iter004.py",
+    "weights": "/Users/zfy/Projects/meta/llm-log-analysis/logs/IL_racecar/iteration_04/weights_final.pth",
+    "output": "data/verification/2026-09-09/car_january_round4_mean_action.json",
+    "sample": false,
+    "seed": 1000,
+    "episodes": 10,
+    "workers": 3,
+    "max_steps": 1000
+  },
+  "episodes": [
+    {
+      "seed": 1000,
+      "torch_seed": 0,
+      "return": 903.5999999999809,
+      "steps": 964,
+      "seconds": 8.124938167165965,
+      "stdout": "Loading model weights from /Users/zfy/Projects/meta/llm-log-analysis/logs/IL_racecar/iteration_04/weights_final.pth...\nEpisode finished after 964 timesteps with total reward 903.60\nTotal rewards: 903.60 \u00b1 0.00\n"
+    },
+    {
+      "seed": 1001,
+      "torch_seed": 0,
+      "return": 848.7179487179334,
+      "steps": 1000,
+      "seconds": 8.637188291177154,
+      "stdout": "Loading model weights from /Users/zfy/Projects/meta/llm-log-analysis/logs/IL_racecar/iteration_04/weights_final.pth...\nEpisode finished after 1000 timesteps with total reward 848.72\nTotal rewards: 848.72 \u00b1 0.00\n"
+    },
+    {
+      "seed": 1002,
+      "torch_seed": 0,
+      "return": 902.799999999983,
+      "steps": 972,
+      "seconds": 8.33930837502703,
+      "stdout": "Loading model weights from /Users/zfy/Projects/meta/llm-log-analysis/logs/IL_racecar/iteration_04/weights_final.pth...\nEpisode finished after 972 timesteps with total reward 902.80\nTotal rewards: 902.80 \u00b1 0.00\n"
+    },
+    {
+      "seed": 1003,
+      "torch_seed": 0,
+      "return": 900.5999999999891,
+      "steps": 994,
+      "seconds": 8.093944457825273,
+      "stdout": "Loading model weights from /Users/zfy/Projects/meta/llm-log-analysis/logs/IL_racecar/iteration_04/weights_final.pth...\nEpisode finished after 994 timesteps with total reward 900.60\nTotal rewards: 900.60 \u00b1 0.00\n"
+    },
+    {
+      "seed": 1004,
+      "torch_seed": 0,
+      "return": 901.8999999999821,
+      "steps": 981,
+      "seconds": 8.326950625050813,
+      "stdout": "Loading model weights from /Users/zfy/Projects/meta/llm-log-analysis/logs/IL_racecar/iteration_04/weights_final.pth...\nEpisode finished after 981 timesteps with total reward 901.90\nTotal rewards: 901.90 \u00b1 0.00\n"
+    },
+    {
+      "seed": 1005,
+      "torch_seed": 0,
+      "return": 835.5828220858784,
+      "steps": 1000,
+      "seconds": 8.58746699988842,
+      "stdout": "Loading model weights from /Users/zfy/Projects/meta/llm-log-analysis/logs/IL_racecar/iteration_04/weights_final.pth...\nEpisode finished after 1000 timesteps with total reward 835.58\nTotal rewards: 835.58 \u00b1 0.00\n"
+    },
+    {
+      "seed": 1006,
+      "torch_seed": 0,
+      "return": 907.6999999999838,
+      "steps": 923,
+      "seconds": 7.229476749897003,
+      "stdout": "Loading model weights from /Users/zfy/Projects/meta/llm-log-analysis/logs/IL_racecar/iteration_04/weights_final.pth...\nEpisode finished after 923 timesteps with total reward 907.70\nTotal rewards: 907.70 \u00b1 0.00\n"
+    },
+    {
+      "seed": 1007,
+      "torch_seed": 0,
+      "return": 870.8737864077509,
+      "steps": 1000,
+      "seconds": 8.422781291417778,
+      "stdout": "Loading model weights from /Users/zfy/Projects/meta/llm-log-analysis/logs/IL_racecar/iteration_04/weights_final.pth...\nEpisode finished after 1000 timesteps with total reward 870.87\nTotal rewards: 870.87 \u00b1 0.00\n"
+    },
+    {
+      "seed": 1008,
+      "torch_seed": 0,
+      "return": 836.7088607594833,
+      "steps": 1000,
+      "seconds": 8.165385167114437,
+      "stdout": "Loading model weights from /Users/zfy/Projects/meta/llm-log-analysis/logs/IL_racecar/iteration_04/weights_final.pth...\nEpisode finished after 1000 timesteps with total reward 836.71\nTotal rewards: 836.71 \u00b1 0.00\n"
+    },
+    {
+      "seed": 1009,
+      "torch_seed": 0,
+      "return": 911.3999999999854,
+      "steps": 886,
+      "seconds": 6.001398374792188,
+      "stdout": "Loading model weights from /Users/zfy/Projects/meta/llm-log-analysis/logs/IL_racecar/iteration_04/weights_final.pth...\nEpisode finished after 886 timesteps with total reward 911.40\nTotal rewards: 911.40 \u00b1 0.00\n"
+    }
+  ],
+  "summary": {
+    "mean": 881.988341797095,
+    "std_population": 29.33146417503951
+  },
+  "elapsed_seconds": 32.47707379190251
+}

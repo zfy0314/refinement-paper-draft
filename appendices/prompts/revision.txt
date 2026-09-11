@@ -1,0 +1,53 @@
+test_results.txt
+```text
+{TEST_RESULTS}
+```
+
+Analyze the test results and compare them with the model summary, expected nominal behavior, and potential anomalies. Formulate some hypotheses on why the model may diverge from expected nominal behavior and think about what in the environment might be missing in the current structure. You may assume that the model already converged under Imitation Learning so that the weights already maximize the similarity to expert actions given the current structure.
+
+Based on these analysis you can choose one of the following three options:
+
+1) If you have a clear idea on how to improve the model, then explain the reasons and suggest the updates. Keep in mind that you are trying to design the model to learn better with Imitation Learning. You may add a new function like `torch.abs`, introduce a new latent variable, initialize the weights to different values, or add any differentiable operations. Keep the model simple to ensure learning stability. Remember not to edit variables in-place since that will confuse the gradient descent step. Keep the model explainable by prioritizing latent variables with semantic information as opposed to generic MLPs. No need to sample the actions when predicting the action mean, the sampling will be taken care of outside of the model. But you can control the sampling process by updating the output `scale_tril` matrix (e.g, adding upper/lower bounds, setting some variables to be independent, etc.) Include the description of the entire new model in the "Model Summary" section, not just the changes. Do not forget to return all weights and the intermediate steps (latent variables) in the return dictionary. Make sure each value in the `info` dict is either of shape (B,) or a scale. If there are multiple dimensions for a variable then break it down to multiple keys and use their physical meaning as keys (for example use "latent_action_steer" instead of "latent_action_0"). Do not forget to include all relevant imports and keep the function interface the same. Use the following format:
+
+[Analysis of Test Results]
+
+[Model Update Suggestions]
+
+[Model Summary]
+
+[Updated Model]
+```py
+import torch
+from torch import nn
+# other relevant imports
+
+class ModelName(nn.Module):
+    def __init__(self):
+        ...
+
+    def forward(self, tiles, indicators):
+        ...
+        return actions, cov_matrix, info
+```
+
+2) If you think the current test results are inconclusive, explain why and suggest additional tests or data that could help clarify the situation. Do not include the previously generated tests. Only include the additional tests. As a reminder you may only write to `test_results.txt` and should not create other files. Use the following format:
+
+[Analysis of Test Results]
+
+[Additional Tests]
+```py
+import ...
+
+def additional_test_1(df):
+    """Brief description of additional test 1"""
+    ...
+
+def run_all(df):
+    ...
+```
+
+3) If you find no limitations and the model seems to be functioning well, confirm this using the following format:
+
+[Analysis of Test Results]
+
+[Done - No Further Action Needed]

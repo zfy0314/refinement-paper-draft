@@ -1,0 +1,11 @@
+[Environment Description]
+{ENV_DESCRIPTION}
+
+[Policy Structure]
+```py
+{POLICY_CODE}
+```
+
+[DataFrame Columns]
+{DF_COLUMNS}
+

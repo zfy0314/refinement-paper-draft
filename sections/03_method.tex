@@ -1,149 +1,149 @@
 \section{Iterative refinement through semantic analysis}
 \label{sec:method}
-% Target: 2.5 pages. Core contribution from the IJCAI26 refinement manuscript.
-% Source mapping: content_mapping.md, Sections 4.1--4.6.
 
-\subsection{Refinement loop and running example}
-\label{sec:loop}
-\begin{itemize}
-    \item State inputs: task/feature/action descriptions, a demonstration set,
-    environment access, and an LLM. Separate information available during
-    development from the observations used by the final deployed policy.
-    \item Introduce the complete cycle before its components. Plan an overview
-    figure and compact algorithm distinguishing the LLM, numerical learner,
-    environment, and diagnostic executor; visibly return edits to training.
-    \item Explain initial code and parameter initialization from the task
-    description and LLM knowledge. The initial LLM input is not the demonstration
-    trajectory. Separate the structure, fitted parameters, rollout, tests, and
-    diagnostic results in the notation.
-    \item \textbf{Running example continuation:} refer to the policy topology
-    already introduced in Section~\ref{sec:running-example}. Preview how its
-    parameter fitting, recorded latents, diagnostic result, structural edit,
-    and post-refit behavior instantiate the loop; no second introductory
-    topology panel is needed here.
-    \item \textbf{Debugging analogy:} map policy program to code, semantic
-    rollout logs to instrumented traces, generated analyses to diagnostic tests,
-    and revision/refitting to editing and rerunning. Use a compact figure inset
-    or explanatory paragraph, not a separate claimed contribution. Behavioral
-    checks may have uncertain expectations and no exact target action for every
-    encountered state; their outputs inform revisions rather than certify them.
-\end{itemize}
+% Our method alternates demonstration-based parameter learning with structural revision guided by semantic rollout analysis.
+% The LLM generates a policy, designs data analysis code around its computations, and uses the resulting analyses to revise the structure across successive rounds of fitting and execution.
 
-\subsection{Fitting each policy to demonstrations}
+
+We draw inspiration from software development: programmers write tests for intermediate steps to flag potential issues and use the feedback to improve the software. We treat the structured policy as software to develop through this iterative refinement process (Figure~\ref{fig:overview}).
+
+
+\subsection{Generating the initial policy}
+\label{sec:initial-generation}
+
+We generate $\llbracket \alpha^{(0)} \rrbracket$ by querying the LLM with only the task description, whereas prior work requires demonstrator-provided knowledge of how demonstrations are generated.
+We use the super script $(i)$ to denote the policy after i iterations.
+Relying on pretrained knowledge and an incomplete environment description, the LLM typically generates simple structures (e.g., Figure~\ref{fig:latent-traces}(a)) that may misalign with the structure underlying the demonstration.
+Subsequent refinement aims to close this structure-demonstration gap.
+
+\subsection{Fitting policy parameters from demonstrations}
 \label{sec:fitting}
-\begin{itemize}
-    \item Specify parameter fitting with the program held fixed and the
-    demonstration set reused across iterations. Include the correctly signed
-    negative-log-likelihood objective when drafting.
-    \item Explain how training and initialization work after an edit; recover
-    whether parameters are reset or transferred and the actual training stopping
-    criterion from implementation artifacts. Do not assume a global optimum.
-    \item Distinguish demonstration fitting from evaluation of closed-loop
-    behavior. Clarify that downstream RL occurs after refinement, rather than
-    supplying the training update in every refinement round.
-    \item \textbf{Running example, textual explanation only:} describe the
-    LLM's initial parameter values as estimates that may not reflect the actual
-    environment's quantitative relationships. With the topology held fixed,
-    training adjusts these values to increase the likelihood of the demonstrated
-    actions. Identify the example's demonstration-fitting context without a
-    dedicated figure or before/after visual comparison. Parameter fitting does
-    not by itself establish that structural or semantic problems are resolved.
-\end{itemize}
 
-\subsection{Recording semantic execution traces}
-\label{sec:traces}
-\begin{itemize}
-    \item Explain how executing the fitted policy produces a table with time
-    steps as rows and observations, parameters, intermediate values, and actions
-    as columns. Policy parameters remain fixed within an evaluation rollout.
-    Emphasize that the structure exposes latent computations as well as external
-    observations and actions, allowing their evolution to be tracked.
-    \item Describe the generated model's \texttt{info\_dict}, semantic key names,
-    and scalar columns for vector components. Explain the table schema briefly;
-    illustrate behavior with selected latent traces and an annotated rollout
-    rather than a large numerical table. Preserve units and sign conventions.
-    \item Distinguish predicted action-distribution quantities from sampled or
-    clipped executed actions. Full numerical logs go to external analysis code;
-    the LLM receives the schema when generating diagnostics.
-    \item \textbf{Running example, panel B---latent traces:} align a few plots
-    of the selected policy's semantic latents, relevant observations, and actions
-    with an annotated trajectory. Mark the same nodes as panel A and highlight
-    a documented interval of problematic behavior. Use the source's
-    \texttt{latent\_closest\_x} and \texttt{output\_clipped\_steer} if present
-    in the matched run; include another meaningful internal quantity only if
-    actually computed by that policy. Distinguish observations from latents.
-    \item Clarify that these figures explain the traces to the reader. The
-    analysis scripts still receive full numerical tables, and the LLM receives
-    the schema and diagnostic results; this is not a visual-feedback variant.
-    Reserve raw log excerpts for the appendix if needed for reproducibility.
-\end{itemize}
+Given the policy structure, we still need to tune its parameters to complete the policy. We use imitation learning to maximize the probability of demonstration actions given demonstration states.
+Formally, given a set of stat-action pairs demonstration
+\begin{equation}
+    \mathcal{D} = \{ \langle s_0, a_0 \rangle, \langle s_1, a_1 \rangle, \cdots \}
+\end{equation}
+We train the weights $\Theta^{(i)}$ of structure $\llbracket \alpha^{(i)} \rrbracket$ with the negative log likelihood loss \cite{osa2018algorithmic}
+\begin{equation}
+    \Theta^{(i)} = \arg\max_\Theta \mathbb{E}_{s, a \in \mathcal{D}} [- \log P\big(a \mid \pi_{\langle \llbracket\alpha^{(i)}\rrbracket, \Theta\rangle}(s)\big)]
+\end{equation}
 
-\subsection{Generating and executing diagnostics}
+In Figure~\ref{fig:latent-traces}(a), imitation learning fits \texttt{centering\_weight} to determine how quickly the policy steers toward the track center.
+This highlights the division of labor: the LLM knows that a race car generally needs to stay near the track center and encodes this knowledge in the structure. However, it does not know how aggressively the car should recenter, so this information must be learned from demonstrations and reflected in the weights while keeping the structure unchanged.
+
+\begin{figure}[!t]
+\centering
+\begin{minipage}[t]{.485\linewidth}
+\centering\textbf{\small (a) Before: fixed centering strength}\\[3pt]
+\resizebox{\linewidth}{!}{\input{figures/diagrams/incremental_before}}
+\end{minipage}\hfill
+\begin{minipage}[t]{.485\linewidth}
+\centering\textbf{\small (b) Recovery behavior analysis}\\[6pt]
+\raggedright\fontsize{8}{10}\selectfont
+\textbf{Expected Behavior:} \\
+When the race car is far from the track center,\\
+it should steer back toward the center.\\[5pt]
+\textbf{Analysis Code:} \\
+\begin{lstlisting}[basicstyle=\ttfamily\fontsize{7}{8.5}\selectfont,frame=single,aboveskip=0pt,belowskip=4pt]
+# Filter: far from the track center
+off_track = abs(log.offset) > half_track_width
+frames = log[off_track]
+# Compare: steering toward center?
+toward = frames.steering * frames.offset > 0
+fraction = mean(toward)
+\end{lstlisting} 
+\textbf{Analysis Result:} \\
+Only \textcolor{red!80!black}{\textbf{14.9\%}} satisfy the check\\
+\end{minipage}
+\par\vspace{5pt}
+\begin{minipage}[t]{.485\linewidth}
+\centering\textbf{\small (c) Recorded lateral offset and steering}\\[3pt]
+\includegraphics[width=\linewidth]{generated/recovery_edit_traces.pdf}
+\end{minipage}\hfill
+\begin{minipage}[t]{.485\linewidth}
+\centering\textbf{\small (d) After: centering amplified when off-track}\\[3pt]
+\resizebox{\linewidth}{!}{\input{figures/diagrams/incremental_after}}
+\end{minipage}
+\caption{Example of off-track recovery structure refinement.
+(a) The steering structure before refinement (other nodes ommitted);
+(b) The desired behavior of re-centering, corresponding test, and the result;
+(c) Recorded lateral offset and steering;
+(d) The refined structure added a strong steering when the race car is off-track.
+}
+\label{fig:latent-traces}
+\end{figure}
+
+
+\subsection{Generating analysis code from the policy structure}
 \label{sec:diagnostics}
-\begin{itemize}
-    \item List the LLM inputs: task description, current policy code, and table
-    column names. Explain the prompt's progression from expected behaviors and
-    possible anomalies to hypotheses and executable analysis functions.
-    \item Show a short generated test and its numerical output. Cover the role
-    of sign/range checks, reconstruction checks, correlations, and behavioral
-    statistics without reproducing the full diagnostic taxonomy here.
-    \item Explain external execution on the complete table and return of
-    diagnostic summaries to the LLM. These analyses supply evidence for proposed
-    edits; they do not certify the underlying semantic assumptions.
-    \item \textbf{Running example, panel C:} use the source's steering-alignment
-    diagnostic as a candidate: the fraction of steps with
-    $\mathrm{steer}\cdot\mathrm{closest\_x}>0$, including an off-track subset.
-    Verify the sign convention and show the actual output from the selected
-    run. Explain that lateral correction alone is not a complete specification
-    of steering during a turn; the statistic requires task context.
-    \item Explain the analogy's scope: some checks resemble numerical
-    assertions, while others summarize temporal or statistical behavior.
-    Continuous, correlated, potentially stochastic rollouts need not yield a
-    single binary pass/fail result. Call these diagnostic checks rather than
-    imply conventional unit tests with a known correct output.
-\end{itemize}
 
-\subsection{Revising the program and continuing the loop}
+By capturing semantics, the policy structure provides an interface for detailed inspection and localizing issues in each subgraph.
+As when generating unit tests in software development, we instruct the LLM to reflect on expected behaviors and generate corresponding tests.
+Given the task description and current structure $\llbracket \alpha^{(i)} \rrbracket$, the LLM proposes hypotheses and writes Python analysis functions $T^{(i)}_j$ to test each of the hypothesis.
+
+Figure~\ref{fig:latent-traces}(b) illustrates one hypothesis: the policy should attempt to recenter after the car goes off-track.
+The policy structure connects this hypothesis to a specific editable computation: the centering contribution generated from lateral offset (subgraph shown in Figure \ref{fig:latent-traces} (a)).
+The test directly queries relevant variables (e.g., \texttt{offset}). We take advantage of the flexibility of Python syntax have no limit on what kind of tests it can generate.
+The above example filters off-track time steps and measures the percentage of the policy exhibiting recovery behavior.
+
+As these tests specify general desired behavior, they can be generated directly from the policy structure, independently of actual rollouts.
+It shows a unique advantage: exposing semantic latents lets the LLM test specific questions, such as whether a steering contribution sufficiently influences off-track behavior, rather than inspecting only the aggregate action.
+During each iteration the LLM generates multiple tests, each testing an individual behavior and subgraph of the policy.
+Other generated analyses examine action saturation, reconstruction errors, and speed regulation (Appendix~\ref{app:diagnostic-prompts}).
+
+\subsection{Collecting tabular trajectories from policy rollouts}
+\label{sec:traces}
+
+After training $\pi_{\langle \alpha^{(i)}, \Theta^{(i)} \rangle}$, we execute it and collect trajectories for analysis.
+At each time step, the policy takes in the current state $s_t$ and populates all the latent values $z^{(i)}_{0,t}, z^{(i)}_{1,t}, \dots, z^{(i)}_{k,t}$ in its computation graph $\llbracket \alpha^{(i)} \rrbracket$.
+Therefore, in addition to the output distribution $a_t$, it also returns all of the intermediate latent states, such as $\texttt{lateral\_offset}_t = 0.1$.
+We organize observations, latents, parameters, and actions into a tabular trajectory,
+\begin{equation}
+    X^{(i)}[t,:]=[s_t,z^{(i)}_{0,t}, z^{(i)}_{1,t}, \dots, z^{(i)}_{k,t},\Theta^{(i)},a_t,s_{t+1}]
+    \label{eq:trace}
+\end{equation}
+where each row records the current state, intermediate latents, weights, action output, and next state.
+
+Figure~\ref{fig:latent-traces}(c) plots these two recorded columns over the full 1,000-step rollout.
+The traces show the raw values supplied to the recovery behavior code analysis.
+This shows the advantage of a semantic latent space: recorded trajectories contain not only states and actions but also the physical meaning of the intermediate computations that generate each action.
+
+\subsection{Executing the analysis code and revising the policy structure}
 \label{sec:revision}
-\begin{itemize}
-    \item Specify the revision context: current program, generated tests,
-    diagnostic results, and task information. Explain how the LLM relates an
-    observed issue to a proposed change in a computation or constraint.
-    \item Describe the prompt's three branches: propose a revised program,
-    request additional diagnostics, or declare no further changes needed.
-    Distinguish these available branches from the sequence actually used in
-    the experiments; document budgets and stopping criteria from records.
-    \item Describe retraining, fresh execution, and regeneration of the table
-    schema/tests when the program changes. Record initialization and distribution
-    edits separately from topology changes. Do not invent acceptance/reversion
-    rules or claim convergence or monotonic improvement.
-    \item \textbf{Running example, panel D:} show the selected run's actual
-    before/after computation and the diagnostic rationale, then the refitted
-    policy's subsequent behavior. This closes the example within the method
-    rather than postponing its explanation to the experiments.
-    \item Clarify the rerun analogy: changed structure must be trained again
-    before execution is informative. Tests can change with the program; do not
-    imply a fixed regression suite or a mandatory test-passing acceptance gate
-    unless it existed in the reported implementation.
-    \item \textbf{Missing evidence for panels A--D:} recover matched programs,
-    fitting context, logs, diagnostics, edit, and evaluation. Do not connect the
-    displayed steering test to unrelated slip-weight outputs or constraints.
-    If unavailable, label the example schematic and separate it from measured
-    empirical evidence.
-\end{itemize}
 
-\subsection{Post-refinement reinforcement learning}
+We execute tests $T^{(i)}$ for desired behaviors on rollout $X^{(i)}$ through a Python interpreter and collect their outputs.
+The tests can be applied to arbitrarily long rollouts or large rollout tables without exceeding the LLM's context length. Their results indicate whether the policy meets each criterion and, if not, which part of its structure is suboptimal.
+
+In Figure~\ref{fig:latent-traces}(b), the test finds center-directed steering in only $14.9\%$ of off-track steps.
+It identifies a state-dependent discrepancy: the executed policy rarely selects center-directed steering where the analysis expects recovery when the race car is off the track. This motivates a structural update making the steering more aggressive when the race car is off the track.
+
+The LLM revises the structure using the task description, current structure, analysis code, and analysis outputs.
+Edits can change dependencies, operations, latent variables, coefficient constraints, and initialization.
+Figure~\ref{fig:latent-traces}(d) shows the recovery branch after the revision.
+The revised program adds a pathway explicitly handling off-track behavior.
+It computes an off-track indicator measuring excess lateral offset, scales it by a trainable nonnegative recovery strength, and adds one to form a multiplier.
+% \begin{equation}
+%     o_t=\max(|x_t|-h,0)\qquad
+%     m_t=1+k o_t\qquad
+%     c_t^{\mathrm{recovery}}=m_t w_x x_t\qquad k\geq0
+%     \label{eq:recovery-edit}
+% \end{equation}
+% where $h=\texttt{half\_track\_width}$ and $w_x x_t$ is the original centering contribution.
+% Within the track boundary, the multiplier is one; beyond it, the multiplier increases with excess offset when $k>0$.
+The additional operations make recovery strength depend explicitly on the state while retaining the other steering contributions.
+The program exposes the new indicator as \texttt{latent\_offtrack\_amount}, allowing subsequent data analysis code to inspect when this branch is active.
+
+The illustrated change creates a \textbf{structural update}, rather than merely changing a fitted parameter.
+Multiple analysis scripts may expose several issues in the structured policy during each update iteration, and the LLM is instructed to address all of them in that iteration.
+The revised structure then repeats the cycle of training, expected-behavior test generation, rollout inspection, and revision.
+
+\subsection{Reinforcement learning on the demonstration-aligned structure}
 \label{sec:rl-method}
-\begin{itemize}
-    \item Retain a brief account of the original RL component: after structural
-    refinement ends, keep the program structure fixed and further optimize its
-    parameters with environment rewards. Explain how this stage differs from
-    the imitation-learning updates inside the refinement loop.
-    \item Identify the critic-free, GSPO-based recipe used in the old draft
-    and summarize the role of sampled trajectories and relative returns. Defer
-    the detailed objective, grouping assumptions, and hyperparameters to
-    Appendix~\ref{app:rl}, subject to implementation verification.
-    \item Link to the main-text RL comparison in Section~\ref{sec:rl-results}.
-    Allocate roughly 0.2 of the method's 2.5 pages to this subsection; the
-    iterative procedure and embedded example occupy the remaining space.
-\end{itemize}
+
+Reinforcement learning further optimizes parameters for reward, starting from the policy aligned through iterative refinement and demonstration fitting.
+We hold the program fixed and use a critic-free, group-relative policy-gradient update adapted from GSPO~\citep{zheng2025group}.
+Trajectories begin from a shared initial condition; time-aligned reward-to-go estimates supply relative advantages, and action windows supply the likelihood ratios.
+We form each ratio from the product of action likelihoods within its window (Appendix~\ref{app:rl}).
+This stage follows structural refinement; imitation learning remains the parameter-fitting step inside the loop.
+The deployed controller executes the final fitted program without LLM calls.

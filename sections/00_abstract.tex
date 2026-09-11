@@ -1,13 +1,13 @@
-% Outline only; replace with a single paragraph when drafting.
-\textbf{Planning outline; not submission prose.}
-\begin{itemize}
-    \item Problem: an initially generated policy structure may not support
-    learning the demonstrated behavior effectively.
-    \item Approach: alternate demonstration-based parameter fitting with
-    LLM-guided structural revision, using semantic rollout analysis as feedback.
-    \item Mechanism: named internal computations become table columns;
-    generated scripts analyze the numerical logs; diagnostic results inform edits.
-    \item Evidence: summarize the IJCAI26 refinement study on Car Racing and
-    Door Opening, feedback comparisons, and a downstream RL result after auditing
-    the reported metrics. Scope the conclusion to these simulated tasks.
-\end{itemize}
+% Structured policies encode task knowledge in a semantically meaningful latent space, providing an inductive bias for efficient learning from demonstrations.
+% However, previous work relies on humans to generate the domain knowledge for the task, and prior knowledge of a large language model (LLM) can yield a policy topology that misaligns with the relationships underlying a demonstration.
+% We introduce iterative policy structure refinement through semantic rollout analysis.
+% Just as a coding agent writes tests to investigate a program's behavior, our method generates tabular data-analysis code from a policy's structure and records its semantic latents during execution.
+% The generated code analyzes complete rollout tables and guides structural edits, alternating with parameter fitting on the same demonstration.
+% With one demonstration per task, refinement improves Car Racing imitation-learning return by approximately 15\% and reduces the environment resets needed for subsequent reinforcement learning to about 20\% for a similar mean return.
+% We also show that it can be generalized to cross other manipulation domains.
+
+Structured policies improve efficiency, robustness, and interpretability in imitation learning by introducing task-specific inductive bias, but existing structure generation methods rely either on extensive human input or on static domain knowledge encoded in LLMs, which may be inconsistent with the expert demonstrations.
+We propose a closed-loop framework that iteratively refines structured policies using LLM-guided analysis of policy rollouts.
+By logging rollouts as semantically meaningful tabular data and prompting the LLM to generate diagnostic analysis code, our method identifies suboptimalities in the policy structure and iteratively corrects them without requiring human instruction.
+Experiments on car racing and door opening tasks show that our approach improves imitation learning performance by up to 15\% over zero-shot LLM-generated structures and requires 75\% less compute to achieve the same reinforcement learning performance.
+These results demonstrate that tabular rollout analysis provides an effective feedback signal to align LLM-generated policy structures with expert demonstrations, and we can utilize it to generate good policy structures automatically.
