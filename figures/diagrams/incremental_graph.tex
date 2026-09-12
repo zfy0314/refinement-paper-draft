@@ -1,5 +1,5 @@
 % Shared grid and bounding box preserve alignment between panels (a) and (d).
-\begin{tikzpicture}[x=1cm,y=1cm,>=Stealth,font=\fontsize{7}{8}\selectfont,
+\begin{tikzpicture}[x=1cm,y=1.3cm,>=Stealth,font=\fontsize{10}{11.5}\selectfont,
  var/.style={draw,line width=.65pt,inner sep=3pt,minimum height=.62cm,align=center},
  latent/.style={var,draw=blue!65!black,fill=blue!9},
  weight/.style={var,draw=orange!75!black,fill=orange!16},
@@ -9,13 +9,13 @@
  flow/.style={->,line width=.65pt},
  added/.style={->,draw=teal!65!black,line width=1pt}]
 \path[use as bounding box] (-1.4,.45) rectangle (7.75,-5.65);
-\node[latent,text width=1.65cm] (offset) at (1.2,0) {Lateral offset\\$x$};
-\node[weight,text width=1.2cm] (weight) at (-.6,-1.35) {Centering\\weight};
-\node[op,text width=1.1cm] (mul) at (1.2,-1.35) {multiply};
-\node[latent,text width=1.65cm] (center) at (1.2,-2.55) {Centering\\contribution};
-\node[latent,text width=1.85cm] (other) at (5.5,-3.65) {Other steering\\contributions};
-\node[op,text width=1.1cm] (sum) at (5.5,-4.5) {add};
-\node[action,text width=2cm] (steer) at (5.5,-5.35) {Steering command};
+\node[latent,text width=2cm] (offset) at (1.2,0) {Lateral offset\\$x$};
+\node[weight,text width=1.4cm] (weight) at (-.6,-1.35) {Centering\\weight};
+\node[op,text width=1.35cm] (mul) at (1.2,-1.35) {multiply};
+\node[latent,text width=2cm] (center) at (1.2,-2.55) {Centering\\contribution};
+\node[latent,text width=2.2cm] (other) at (5.5,-3.65) {Other steering\\contributions};
+\node[op,text width=1.35cm] (sum) at (5.5,-4.5) {add};
+\node[action,text width=2cm] (steer) at (5.5,-5.35) {Steering\\command};
 \draw[flow](offset.south)--(mul.north);
 \draw[flow](weight.east)--(mul.west);
 \draw[flow](mul.south)--(center.north);
@@ -23,14 +23,14 @@
 \draw[flow](sum.south)--(steer.north);
 \ifincrementaledit
  \node[latent,new,text width=4cm] (off) at (5.5,0)
-   {Off-track indicator\\$\max(|x|-\texttt{half\_track\_width},0)$};
- \node[weight,new,text width=1.25cm] (strength) at (3.4,-1.35)
-   {Off-track strength\\$k\geq0$};
- \node[op,new,text width=1.75cm,draw=teal!65!black] (product) at (5.5,-1.35)
+   {Off-track indicator\\$\max(|x|-$\\$\texttt{half\_track\_width},0)$};
+ \node[weight,new,text width=1.5cm] (strength) at (3.2,-1.35)
+   {Off-track\\strength\\$k\geq0$};
+ \node[op,new,text width=2cm,draw=teal!65!black] (product) at (5.5,-1.35)
    {multiply, then $+1$};
- \node[latent,new,text width=1.85cm] (recovery) at (5.5,-2.55)
+ \node[latent,new,text width=2.2cm] (recovery) at (5.5,-2.55)
    {Recovery\\multiplier};
- \node[op,new,text width=1.1cm,draw=teal!65!black] (boost) at (1.2,-4.5)
+ \node[op,new,text width=1.35cm,draw=teal!65!black] (boost) at (1.2,-4.5)
    {multiply};
  \draw[added](offset.east)--(off.west);
  \draw[added](off.south)--(product.north);

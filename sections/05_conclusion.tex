@@ -31,5 +31,5 @@ The method may also benefit from a fine-tuned LLM and/or a more carefully design
 
 We introduced iterative policy structure refinement through semantic rollout analysis.
 The method alternates demonstration-based parameter fitting with LLM-generated diagnostics and structural edits, linking execution and revision through semantically meaningful latents.
+The sparse, semantic structure allows the LLM to test specific relationships within a policy and use the results to guide structural revision, following the cycle of testing and revision used in code debugging.
 With one demonstration per task, refinement improves imitation learning, generalizes to unseen task configurations, and reduces subsequent reinforcement learning resets.
-% Semantic structure makes learned control strategies accessible to the same cycle of testing and revision that drives code debugging.

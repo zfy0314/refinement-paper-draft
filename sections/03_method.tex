@@ -12,7 +12,7 @@ We draw inspiration from software development: programmers write tests for inter
 \label{sec:initial-generation}
 
 We generate $\llbracket \alpha^{(0)} \rrbracket$ by querying the LLM with only the task description, whereas prior work requires demonstrator-provided knowledge of how demonstrations are generated.
-We use the super script $(i)$ to denote the policy after i iterations.
+We use the superscript $(i)$ to denote the policy after $i$ iterations.
 Relying on pretrained knowledge and an incomplete environment description, the LLM typically generates simple structures (e.g., Figure~\ref{fig:latent-traces}(a)) that may misalign with the structure underlying the demonstration.
 Subsequent refinement aims to close this structure-demonstration gap.
 
@@ -20,11 +20,11 @@ Subsequent refinement aims to close this structure-demonstration gap.
 \label{sec:fitting}
 
 Given the policy structure, we still need to tune its parameters to complete the policy. We use imitation learning to maximize the probability of demonstration actions given demonstration states.
-Formally, given a set of stat-action pairs demonstration
+Formally, given a demonstration as a set of state-action pairs,
 \begin{equation}
     \mathcal{D} = \{ \langle s_0, a_0 \rangle, \langle s_1, a_1 \rangle, \cdots \}
 \end{equation}
-We train the weights $\Theta^{(i)}$ of structure $\llbracket \alpha^{(i)} \rrbracket$ with the negative log likelihood loss \cite{osa2018algorithmic}
+we train the weights $\Theta^{(i)}$ of structure $\llbracket \alpha^{(i)} \rrbracket$ with the negative log-likelihood loss \cite{osa2018algorithmic}
 \begin{equation}
     \Theta^{(i)} = \arg\max_\Theta \mathbb{E}_{s, a \in \mathcal{D}} [- \log P\big(a \mid \pi_{\langle \llbracket\alpha^{(i)}\rrbracket, \Theta\rangle}(s)\big)]
 \end{equation}
@@ -39,7 +39,12 @@ This highlights the division of labor: the LLM knows that a race car generally n
 \resizebox{\linewidth}{!}{\input{figures/diagrams/incremental_before}}
 \end{minipage}\hfill
 \begin{minipage}[t]{.485\linewidth}
-\centering\textbf{\small (b) Recovery behavior analysis}\\[6pt]
+\centering\textbf{\small (b) After: centering amplified when off-track}\\[3pt]
+\resizebox{\linewidth}{!}{\input{figures/diagrams/incremental_after}}
+\end{minipage}
+\par\vspace{5pt}
+\begin{minipage}[t]{.485\linewidth}
+\centering\textbf{\small (c) Recovery behavior analysis}\\[6pt]
 \raggedright\fontsize{8}{10}\selectfont
 \textbf{Expected Behavior:} \\
 When the race car is far from the track center,\\
@@ -55,21 +60,16 @@ fraction = mean(toward)
 \end{lstlisting} 
 \textbf{Analysis Result:} \\
 Only \textcolor{red!80!black}{\textbf{14.9\%}} satisfy the check\\
-\end{minipage}
-\par\vspace{5pt}
-\begin{minipage}[t]{.485\linewidth}
-\centering\textbf{\small (c) Recorded lateral offset and steering}\\[3pt]
-\includegraphics[width=\linewidth]{generated/recovery_edit_traces.pdf}
 \end{minipage}\hfill
 \begin{minipage}[t]{.485\linewidth}
-\centering\textbf{\small (d) After: centering amplified when off-track}\\[3pt]
-\resizebox{\linewidth}{!}{\input{figures/diagrams/incremental_after}}
+\centering\textbf{\small (d) Recorded lateral offset and steering}\\[3pt]
+\includegraphics[width=\linewidth]{generated/recovery_edit_traces.pdf}
 \end{minipage}
 \caption{Example of off-track recovery structure refinement.
-(a) The steering structure before refinement (other nodes ommitted);
-(b) The desired behavior of re-centering, corresponding test, and the result;
-(c) Recorded lateral offset and steering;
-(d) The refined structure added a strong steering when the race car is off-track.
+(a) The steering structure before refinement (other nodes omitted);
+(b) The refined structure adds stronger steering when the race car is off-track;
+(c) The desired behavior of re-centering, corresponding test, and the result;
+(d) Recorded lateral offset and steering.
 }
 \label{fig:latent-traces}
 \end{figure}
@@ -80,16 +80,16 @@ Only \textcolor{red!80!black}{\textbf{14.9\%}} satisfy the check\\
 
 By capturing semantics, the policy structure provides an interface for detailed inspection and localizing issues in each subgraph.
 As when generating unit tests in software development, we instruct the LLM to reflect on expected behaviors and generate corresponding tests.
-Given the task description and current structure $\llbracket \alpha^{(i)} \rrbracket$, the LLM proposes hypotheses and writes Python analysis functions $T^{(i)}_j$ to test each of the hypothesis.
+Given the task description and current structure $\llbracket \alpha^{(i)} \rrbracket$, the LLM proposes hypotheses and writes Python analysis functions $T^{(i)}_j$ to test each of the hypotheses.
 
-Figure~\ref{fig:latent-traces}(b) illustrates one hypothesis: the policy should attempt to recenter after the car goes off-track.
+Figure~\ref{fig:latent-traces}(c) illustrates one hypothesis: the policy should attempt to recenter after the car goes off-track.
 The policy structure connects this hypothesis to a specific editable computation: the centering contribution generated from lateral offset (subgraph shown in Figure \ref{fig:latent-traces} (a)).
-The test directly queries relevant variables (e.g., \texttt{offset}). We take advantage of the flexibility of Python syntax have no limit on what kind of tests it can generate.
-The above example filters off-track time steps and measures the percentage of the policy exhibiting recovery behavior.
+The test directly queries relevant variables (e.g., \texttt{offset}). We take advantage of the flexibility of Python syntax and have no limit on what kind of tests it can generate.
+The above example filters off-track time steps and measures the percentage of time steps in which the policy exhibits recovery behavior.
 
 As these tests specify general desired behavior, they can be generated directly from the policy structure, independently of actual rollouts.
 It shows a unique advantage: exposing semantic latents lets the LLM test specific questions, such as whether a steering contribution sufficiently influences off-track behavior, rather than inspecting only the aggregate action.
-During each iteration the LLM generates multiple tests, each testing an individual behavior and subgraph of the policy.
+During each iteration, the LLM generates multiple tests, each testing an individual behavior and subgraph of the policy.
 Other generated analyses examine action saturation, reconstruction errors, and speed regulation (Appendix~\ref{app:diagnostic-prompts}).
 
 \subsection{Collecting tabular trajectories from policy rollouts}
@@ -105,7 +105,7 @@ We organize observations, latents, parameters, and actions into a tabular trajec
 \end{equation}
 where each row records the current state, intermediate latents, weights, action output, and next state.
 
-Figure~\ref{fig:latent-traces}(c) plots these two recorded columns over the full 1,000-step rollout.
+Figure~\ref{fig:latent-traces}(d) plots these two recorded columns over the full 1,000-step rollout.
 The traces show the raw values supplied to the recovery behavior code analysis.
 This shows the advantage of a semantic latent space: recorded trajectories contain not only states and actions but also the physical meaning of the intermediate computations that generate each action.
 
@@ -115,12 +115,12 @@ This shows the advantage of a semantic latent space: recorded trajectories conta
 We execute tests $T^{(i)}$ for desired behaviors on rollout $X^{(i)}$ through a Python interpreter and collect their outputs.
 The tests can be applied to arbitrarily long rollouts or large rollout tables without exceeding the LLM's context length. Their results indicate whether the policy meets each criterion and, if not, which part of its structure is suboptimal.
 
-In Figure~\ref{fig:latent-traces}(b), the test finds center-directed steering in only $14.9\%$ of off-track steps.
+In Figure~\ref{fig:latent-traces}(c), the test finds center-directed steering in only $14.9\%$ of off-track steps.
 It identifies a state-dependent discrepancy: the executed policy rarely selects center-directed steering where the analysis expects recovery when the race car is off the track. This motivates a structural update making the steering more aggressive when the race car is off the track.
 
 The LLM revises the structure using the task description, current structure, analysis code, and analysis outputs.
 Edits can change dependencies, operations, latent variables, coefficient constraints, and initialization.
-Figure~\ref{fig:latent-traces}(d) shows the recovery branch after the revision.
+Figure~\ref{fig:latent-traces}(b) shows the recovery branch after the revision.
 The revised program adds a pathway explicitly handling off-track behavior.
 It computes an off-track indicator measuring excess lateral offset, scales it by a trainable nonnegative recovery strength, and adds one to form a multiplier.
 % \begin{equation}
@@ -141,9 +141,7 @@ The revised structure then repeats the cycle of training, expected-behavior test
 \subsection{Reinforcement learning on the demonstration-aligned structure}
 \label{sec:rl-method}
 
-Reinforcement learning further optimizes parameters for reward, starting from the policy aligned through iterative refinement and demonstration fitting.
-We hold the program fixed and use a critic-free, group-relative policy-gradient update adapted from GSPO~\citep{zheng2025group}.
-Trajectories begin from a shared initial condition; time-aligned reward-to-go estimates supply relative advantages, and action windows supply the likelihood ratios.
-We form each ratio from the product of action likelihoods within its window (Appendix~\ref{app:rl}).
-This stage follows structural refinement; imitation learning remains the parameter-fitting step inside the loop.
-The deployed controller executes the final fitted program without LLM calls.
+Convergence in the policy structure $\llbracket \alpha \rrbracket$ indicates no structural improvement is needed for the policy.
+To further improve performance, we apply a finite-length variant of GSPO \citep{zheng2025group} reinforcement learning to further optimize the continuous parameters $\Theta$.
+Specifically, given $k$ trajectories per step, we use a sliding window of length $l$ to break each of them into tracklets of length $l$, then form groups such that the starting positions of the groups are similar.
+Appendix~\ref{app:rl} describes the implementation details.

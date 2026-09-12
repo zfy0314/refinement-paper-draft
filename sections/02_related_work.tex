@@ -4,35 +4,28 @@
 \subsection{Structured policies and learning from demonstrations}
 \label{sec:related-structured}
 
-Structured policy learning separates the choice of computations from the estimation of their numerical parameters.
-KIM uses an LLM to implement expert knowledge as a sparse, semantic policy program and learns its parameters from demonstrations~\citep{zhu2025sample}.
-InterPReT supports interactive teaching through user-directed restructuring and parameter training~\citep{zhu2026interpret}.
-We build on this representation and use execution diagnostics to generate structural changes automatically, reducing the need for an expert to formulate corrective instructions.
+Since embodied policies can often be naturally expressed in code, many works have explored incorporating LLM code generation into policy representations.
+The most direct approaches generate executable policies, symbolic plans, or production rules from language instructions~\citep{liang2022code,liu2023llm+,kirk2024improving}.
+Other approaches generate intermediate components that define behavior indirectly, such as spatial value maps and language-guided state abstractions~\citep{huang2023voxposer,peng2024learning,peng2024adaptive}.
+More recent graph-based approaches, including Graph-as-Policy (GaP), compose perception, planning, and control modules into interpretable computation graphs~\citep{chen2026gap}.
 
-Language can also guide the representation through which demonstrations are interpreted.
-ALGAE alternates language-guided feature construction with learning reward weights from demonstrations~\citep{peng2024adaptive}.
-Our method instead revises the policy's action-generating computations and analyzes their evaluated latent values during interaction.
-For example, the LLM can revise the feature and coefficient that determine target speed directly.
+Demonstration-guided approaches use expert knowledge, narrated actions, or interactive corrections to construct interpretable representations of behavior~\citep{zhu2025sample,kim2025interactiveprogramsynthesismodeling,zhu2026interpret}.
+Our representation follows KIM~\citep{zhu2025sample}: generated code specifies a sparse semantic structure, while continuous parameters are learned from demonstrations.
+We extend this separation by generating tabular data analysis code to identify misalignment and guide structural updates, reducing the need for human corrective instructions.
 
-Programmatic control provides a complementary route from language to robot behavior.
-Code as Policies generates executable robot policies~\citep{liang2022code}, while VoxPoser constructs spatial value maps for planning~\citep{huang2023voxposer}.
-MLES combines multimodal program generation with evolutionary search and visual behavior feedback~\citep{hu2025multimodal}.
-Our method combines generated control code with demonstration-based parameter fitting, using the policy's semantic latent space as a numerical diagnostic interface between revisions.
+Reinforcement learning from demonstrations improves learning efficiency by shaping rewards, augmenting replay data, or initializing policies and dynamics models~\citep{brys2015reinforcement,hester2018deep,uchendu2023jump,hansen2022modem}.
+Our work uses demonstrations to fit parameters within successively refined structures, so subsequent reinforcement learning starts with both a learned policy and a demonstration-aligned structure.
 
 \subsection{LLM-guided program revision and execution feedback}
 \label{sec:related-refinement}
 
-Execution-guided code revision is now a central mechanism in agentic systems.
-Self-Debugging uses execution results and code explanations to improve generated programs~\citep{chen2023selfdebug}.
-AlphaEvolve iteratively edits algorithms using evaluator feedback and evolutionary search~\citep{novikov2025alphaevolve}, while the Darwin G\"odel Machine modifies the coding agent itself and evaluates changes on coding benchmarks~\citep{zhang2025darwin}.
-We extend execution-guided revision to trainable controllers, where each edited program undergoes demonstration fitting before evaluation.
+Classical neural architecture search automates structure design through differentiable, evolutionary, or learned search over model primitives~\citep{liu2018darts,jian2023eenas,zoph2018learning}.
+LLM-guided methods instead use semantic knowledge and execution feedback to revise programs directly, including self-debugging, algorithm evolution, and coding-agent improvement~\citep{chen2023selfdebug,novikov2025alphaevolve,zhang2025darwin}.
+Related methods revise reward functions or state representations using learning and environment feedback~\citep{ma2023eureka,li2025R,peng2024adaptive}.
 
-Recent robotic agents extend iterative revision into physical execution.
-ENPIRE organizes scene reset, policy improvement, rollout evaluation, and code evolution into a repeatable robot-learning loop; its agents can revise training infrastructure and algorithm code as well as policies~\citep{xiao2026enpire}.
-ASPIRE writes and repairs robot control programs using detailed multimodal traces, accumulates reusable skills, and explores task sequences through evolutionary search~\citep{lu2026aspire}.
-Our method uses the semantic latent space of a trainable policy as the interface for revision: named latent values become columns in a rollout table, and generated analysis programs diagnose the computations that produce them.
+In robotics, programmatic search and agentic learning systems use rollout feedback to improve control programs, reusable skills, or the surrounding learning workflow~\citep{hu2025multimodal,lu2026aspire,xiao2026enpire}.
+Graph-based refinement extends this process to modular policy graphs, with GaP using simulation rehearsal to improve graph structure and parameters~\citep{chen2026gap}.
 
-The choice of executable object and feedback distinguishes these approaches.
-Eureka revises reward code using RL training feedback~\citep{ma2023eureka}; ASPIRE repairs control programs and builds a skill library; ENPIRE exposes the wider robot-learning workflow to coding agents.
-Here, the LLM writes both a trainable policy and a separate diagnostic program, with demonstration fitting between policy revisions.
-Semantic structure connects these two programs, allowing numerical execution results to guide targeted changes to the controller.
+Our pipeline uses code generation in two complementary ways: one program defines the trainable policy structure, and another analyzes its tabular rollouts.
+The sparse semantic structure connects numerical feedback to specific computations that can be revised, while demonstrations fit the continuous parameters between revisions.
+This differs from searching only over complete executable policies or optimizing a reward function: the analysis code inspects the intermediate values of the policy itself to guide structural refinement.

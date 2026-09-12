@@ -1,0 +1,42 @@
+\begin{table}[!t]
+\centering
+\footnotesize
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{l|c|c|c}
+\toprule
+\textbf{Strategy} & \textbf{MLES} & \textbf{Initial} & \textbf{Refined}  \\
+\midrule
+\multicolumn{4}{l}{\textbf{Speed Control}} \\
+\midrule
+speed during straights & $\checkmark$ & $\checkmark$ & $\checkmark$ \\
+speed at track center & $\checkmark$ & $\checkmark$  & $\checkmark$ \\
+slow at corners & $\checkmark$ & $\checkmark$ & $\checkmark$ \\
+slow at sides / large offset & $\checkmark$ & $\checkmark$ & $\checkmark$ \\
+slow when outside track & $\checkmark$ & & \\
+slow at high angular velocity & & $\checkmark$ & $\checkmark$ \\
+no concurrent acceleration / braking& $\checkmark$ & $\checkmark$ & $\checkmark$ \\
+\midrule
+\multicolumn{4}{l}{\textbf{Steering Control}} \\
+\midrule
+toward track center & $\checkmark$ & $\checkmark$ & $\checkmark$ \\
+toward outside of curves &  & & $\checkmark$ \\
+speed-based steering & $\checkmark$ &  &  \\
+to counter angular velocity & & $\checkmark$ & $\checkmark$  \\
+anticipate curvature & $\checkmark$ & $\checkmark$ & $\checkmark$ \\
+\midrule
+\multicolumn{4}{l}{\textbf{Specific Cases}} \\
+\midrule
+avoid grass & $\checkmark$ &  &  \\
+avoid curbs & $\checkmark$ &  &  \\
+recover when off-track & $\checkmark$ &  &  \\
+brake when turning sharply & $\checkmark$ &  & $\checkmark$ \\
+brake when track is lost & $\checkmark$ &  &  \\
+brake when losing traction & & $\checkmark$ & $\checkmark$ \\
+prevent full stop & $\checkmark$ &  &  \\
+\midrule
+\textbf{Total coverage} & 15 & 10 & 12 \\
+\bottomrule
+\end{tabular}
+\caption{Strategy categories identified by manual inspection of Car Racing policies.}
+\label{tab:semantic}
+\end{table}

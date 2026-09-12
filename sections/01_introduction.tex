@@ -1,50 +1,87 @@
 \section{Introduction}
 \label{sec:introduction}
 
-Learning a control policy from a small number of demonstrations depends on choosing a useful policy structure.
-A driving demonstration, for example, contains steering and pedal commands, but does not explicitly state how track geometry, target speed, and lateral correction should interact.
-Knowledge Informed Models (KIM) address this problem by translating an expert's strategy description into a structured policy and fitting its numerical parameters to demonstrations~\citep{zhu2025sample}.
-The policy computes actions through named latent quantities, such as target speed and speed error, that express the expert's intended strategy.
+Black-box deep learning models are highly non-linear and can exhibit unpredictable malicious behaviors \cite{betley2025weird} or inconsistent performance \cite{luo2025beyond}.
+Recent work addresses this by using LLMs to generate task-specific policy structures that are sparse and semantically meaningful \cite{zhu2025sample}, improving the efficiency and robustness of imitation learning.
+However, these approaches rely heavily on human experts to provide domain knowledge or to continuously monitor and refine the generated structures.
 
-An LLM can reduce the burden of writing that strategy, but its initial structure may not match the relationships needed to reproduce the demonstration reliably.
-A model may label a wheel-speed reading as ``slip,'' for example, even though wheel speed also increases during ordinary forward motion.
-Gradient training can compensate by changing coefficients, including reversing a coefficient's intended sign, but it cannot replace the feature computation or add a missing dependency on vehicle speed.
-The problem is therefore not just how to fit the initial policy, but how to revise the assumptions encoded in its program.
+In principle, LLMs already encode substantial task-relevant knowledge from pretraining and could be used to instantiate policy structures.
+However, because LLMs do not directly observe the environment, the generated structures may encode modeling assumptions that conflict with expert demonstrations or overlook critical variable interactions.
+For example, an LLM may introduce a damping term that links steering to angular velocity to correct spins.
+However, in demonstrations, an expert may steer in the same direction as the angular velocity during sharp turns, causing the learned policy to violate the intended assumption and exhibit unwanted oscillatory behavior.
 
-We approach structural refinement as code debugging.
-When a program behaves unexpectedly, a coding agent can inspect intermediate values, write checks, run them, and use their outputs to revise the code.
-We apply the same pattern to a trainable controller: fit it to a demonstration, execute it in the environment, investigate its internal behavior, and edit the policy before training again.
-Figure~\ref{fig:overview} shows this loop and how its stages connect.
-A structural edit becomes a hypothesis tested through another round of learning and execution.
+% We aim to close the misalignment with iterative structural refinement that is similar to code debugging.
+% When a program behaves unexpectedly, a coding agent can inspect intermediate values, write checks, run them, and use their outputs to revise the code.
+% We apply the same pattern to a trainable controller: fit it to a demonstration, execute it in the environment, investigate its internal behavior, and edit the policy before training again.
+% Figure~\ref{fig:overview} shows this loop and how its stages connect.
+% A structural edit becomes a hypothesis tested through another round of learning and execution.
+
+% Semantic structure makes this debugging interface concrete.
+% An aggregate return indicates how well the car drove, whereas a named latent such as target speed identifies a computation whose inputs and outputs can be examined.
+% Logging those quantities creates a table with interpretable columns and one row per execution step.
+% Given the program and column names, an LLM can generate analyses of coefficient signs, speed regulation, or action saturation, then connect the results to specific computations that it can change.
+% The numerical analyses run outside the LLM on the complete table, so the model reasons over diagnostic results instead of reading thousands of trajectory rows.
+% 
+% Our method alternates these two forms of learning: gradients fit the parameters within a structure, while execution analysis guides revisions to the structure itself.
+% The initial LLM uses the task description and observation semantics; the numerical learner uses the demonstration.
+% The resulting controller runs independently of the LLM at deployment.
+
+To resolve such misalignment, we propose a closed-loop framework that alternates demonstration-based parameter fitting with LLM-guided structural refinement (Figure~\ref{fig:overview}).
+The process resembles software debugging: a programmer specifies expected behavior, writes tests, and uses their results to locate and correct errors.
+Here, the LLM generates data analysis code to test expected policy behavior, runs it on tabular rollouts, and uses the results to revise the structure before fitting its parameters again.
+This debugging interface is possible because structured policies are sparse and semantically meaningful: each intermediate quantity has an interpretable role, and its dependencies can be traced to specific computations that the LLM can inspect and edit.
+For the turning example above, tests can examine whether the angular-velocity term damps rotation as intended and whether steering oscillates during turns.
+The results can guide updates to that term or its parameter constraints, such as using \texttt{softplus} to enforce an intended coefficient sign.
+Unlike prior methods that rely on visual \cite{chen2024elemental} or textual feedback \cite{peng2024adaptive}, our approach executes analysis code outside the LLM on complete rollout tables and returns only the results, allowing it to handle trajectories beyond the LLM's context limit and data that are not easily visualizable.
+
+Our contributions are threefold: (1) LLM-driven automated policy structure generation and refinement without human expert input, (2) the use of tabular rollout analysis as environment feedback for policy updates, and (3) empirical evidence that structure refinement improves the efficiency of reinforcement learning from demonstrations in control tasks.
+
+% Learning a control policy from a small number of demonstrations depends on choosing a useful policy structure.
+% A driving demonstration, for example, contains steering and pedal commands, but does not explicitly state how track geometry, target speed, and lateral correction should interact.
+% Knowledge Informed Models (KIM) address this problem by translating an expert's strategy description into a structured policy and fitting its numerical parameters to demonstrations~\citep{zhu2025sample}.
+% The policy computes actions through named latent quantities, such as target speed and speed error, that express the expert's intended strategy.
+% 
+% An LLM can reduce the burden of writing that strategy, but its initial structure may not match the relationships needed to reproduce the demonstration reliably.
+% A model may label a wheel-speed reading as ``slip,'' for example, even though wheel speed also increases during ordinary forward motion.
+% Gradient training can compensate by changing coefficients, including reversing a coefficient's intended sign, but it cannot replace the feature computation or add a missing dependency on vehicle speed.
+% The problem is therefore not just how to fit the initial policy, but how to revise the assumptions encoded in its program.
+% 
+% We approach structural refinement as code debugging.
+% When a program behaves unexpectedly, a coding agent can inspect intermediate values, write checks, run them, and use their outputs to revise the code.
+% We apply the same pattern to a trainable controller: fit it to a demonstration, execute it in the environment, investigate its internal behavior, and edit the policy before training again.
+% Figure~\ref{fig:overview} shows this loop and how its stages connect.
+% A structural edit becomes a hypothesis tested through another round of learning and execution.
 
 \begin{figure}[!t]
 \centering
 % Trim the source PDF's blank bottom/top margins, preserving the original asset.
 \includegraphics[width=\linewidth,trim=0bp 69bp 0bp 127bp,clip]{teaser0909.pdf}
-\caption{Policy refinement as debugging through execution.
-\textbf{Generate the initial policy (Section~\ref{sec:initial-generation}):} an LLM writes a structured program from the task description and observation semantics.
-\textbf{Fit parameters (Section~\ref{sec:fitting}):} gradient training uses demonstration state--action pairs.
-\textbf{Generate analysis code (Section~\ref{sec:diagnostics}):} the LLM designs checks from the policy structure and its logging schema.
-\textbf{Collect tabular trajectories (Section~\ref{sec:traces}):} policy rollouts record observations, actions, and named latent values.
-\textbf{Execute analyses and revise the structure (Section~\ref{sec:revision}):} the code runs on the collected trajectories, and the LLM uses its results to update the policy program.
+\caption{Overview of policy refinement.
+\textbf{1. Generate the initial structure} by querying an LLM with the task description.
+\textbf{2. Update parameters} through imitation learning on the demonstrations.
+\textbf{3. Generate analysis code} based on the desired behavior of the policy and its structure topology.
+\textbf{4. Collect tabular trajectories}, recording observations, actions, and named latent values during policy rollouts.
+\textbf{5. Execute analyses and revise the structure} based on the analysis results.
 The updated program returns to parameter fitting and another refinement cycle.
-\textbf{Reinforcement learning (Section~\ref{sec:rl-method}):} after the final demonstration fit, reward-based training optimizes parameters within the demonstration-aligned structure.}
+\textbf{6. Reinforcement learning} after the structure aligns with the demonstrations to go beyond the demonstration performance.
+}
 \label{fig:overview}
 \end{figure}
 
-Semantic structure makes this debugging interface concrete.
-An aggregate return indicates how well the car drove, whereas a named latent such as target speed identifies a computation whose inputs and outputs can be examined.
-Logging those quantities creates a table with interpretable columns and one row per execution step.
-Given the program and column names, an LLM can generate analyses of coefficient signs, speed regulation, or action saturation, then connect the results to specific computations that it can change.
-The numerical analyses run outside the LLM on the complete table, so the model reasons over diagnostic results instead of reading thousands of trajectory rows.
-
-Our method alternates these two forms of learning: gradients fit the parameters within a structure, while execution analysis guides revisions to the structure itself.
-The initial LLM uses the task description and observation semantics; the numerical learner uses the demonstration.
-The resulting controller runs independently of the LLM at deployment.
-Our contributions are:
-\begin{itemize}
-    \item An iterative refinement procedure that combines demonstration-based parameter fitting with LLM-guided revision of a structured policy program.
-    \item A tabular data-analysis interface grounded in the policy's semantic latents, using generated executable checks to connect rollout evidence to program edits.
-    \item Experiments on Car Racing and Door Opening showing improved imitation learning, generalization to unseen settings, and more efficient subsequent reinforcement learning, together with analyses of feedback and structural changes.
-\end{itemize}
-Building on KIM's structured-policy representation, our method uses its exposed semantics to refine the LLM's initial control strategy through execution.
+% Semantic structure makes this debugging interface concrete.
+% An aggregate return indicates how well the car drove, whereas a named latent such as target speed identifies a computation whose inputs and outputs can be examined.
+% Logging those quantities creates a table with interpretable columns and one row per execution step.
+% Given the program and column names, an LLM can generate analyses of coefficient signs, speed regulation, or action saturation, then connect the results to specific computations that it can change.
+% The numerical analyses run outside the LLM on the complete table, so the model reasons over diagnostic results instead of reading thousands of trajectory rows.
+% 
+% Our method alternates these two forms of learning: gradients fit the parameters within a structure, while execution analysis guides revisions to the structure itself.
+% The initial LLM uses the task description and observation semantics; the numerical learner uses the demonstration.
+% The resulting controller runs independently of the LLM at deployment.
+% Our contributions are:
+% \begin{itemize}
+%     \item An iterative refinement procedure that combines demonstration-based parameter fitting with LLM-guided revision of a structured policy program.
+%     \item A tabular data-analysis interface grounded in the policy's semantic latents, using generated executable checks to connect rollout evidence to program edits.
+%     \item Experiments on Car Racing and Door Opening showing improved imitation learning, generalization to unseen settings, and more efficient subsequent reinforcement learning, together with analyses of feedback and structural changes.
+% \end{itemize}
+% Building on KIM's structured-policy representation, our method uses its exposed semantics to refine the LLM's initial control strategy through execution.
+% 
