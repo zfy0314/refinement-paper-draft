@@ -29,7 +29,7 @@ The returned \texttt{speed\_error} exposes the latent value for further rollout 
 \label{sec:running-example}
 \label{sec:semantic-interface}
 
-Following previous work \cite{zhu2025sample}, a structured policy computes actions from observations through a semantically meaningful latent.
+Following previous work \cite{zhu2025sample}, a structured policy computes actions from observations through a semantically meaningful latent space.
 Formally, each structured policy has a symbolic component $\llbracket\alpha\rrbracket = \langle (V, P), E \rangle$: a bipartite graph whose variable nodes $V$ represent intermediate values, operator nodes $P$ compute transformations between them, and edges $E$ connect variables and operators.
 Each structured policy also has a neural component $\Theta$ containing all learnable latent values (a subset of $V$), which determine the exact continuous output.
 We implement each structured policy as a task-specific PyTorch model \cite{paszke2019pytorch}, representing the graph topology in code and fitting its parameters through the autograd function.
@@ -40,4 +40,4 @@ The topology defines a proportional controller for maintaining constant speed, w
 This highlights the separation of symbolic and neural components: the symbolic structure is task-specific, specifying the intermediate steps that generate actions; continuous parameters are demonstration-specific, determining how the demonstration completes the task.
 
 Unlike post-hoc explanations of black-box models, latent semantics directly reveal expected policy behavior, while intermediate computations trace how actions are generated.
-In this work, we audit all the internal mechanisms that generate actions and use this information to detect structure-demonstration misalignment and propose structural refinement.
+We audit all the internal mechanisms that generate actions and use this information to detect structure-demonstration misalignment and propose structural refinement.
